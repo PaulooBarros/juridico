@@ -1,10 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
-import { Scale, ArrowRight, ArrowLeft, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowRight, ArrowLeft, Check, Upload, X, Plus, User } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
@@ -16,243 +14,469 @@ const STEPS = [
   { id: 5, label: 'Plano' },
 ]
 
+const STEP_TITLES = ['', 'Dados do escritório', 'Identidade visual', 'Perfil profissional', 'Convidar equipe', 'Escolha seu plano']
+const STEP_SUBS = [
+  '',
+  'Informações cadastrais. Aparecem em documentos gerados pelo sistema.',
+  'Como o escritório se apresenta para clientes e equipe.',
+  'Esses dados aparecem em petições e na comunicação com clientes.',
+  'Convide colegas para colaborar. Você pode pular e fazer depois.',
+  'Comece com 14 dias grátis em qualquer plano.',
+]
+
 export default function OnboardingPage() {
   const [step, setStep] = useState(1)
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="h-14 border-b flex items-center px-6 gap-4">
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-            <Scale size={15} className="text-white" />
+
+      {/* Header */}
+      <header className="flex items-center justify-between px-10 border-b border-border h-[49px] shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
+            V
           </div>
-          <span className="text-sm font-bold">Vetor Jurídico</span>
+          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">
+            Vetor <em className="text-primary not-italic">Jurídico</em>
+          </span>
         </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="flex items-center gap-2">
-            {STEPS.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    'flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold transition-colors',
-                    step > s.id
-                      ? 'bg-primary text-primary-foreground'
-                      : step === s.id
-                      ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
-                      : 'bg-muted text-muted-foreground'
-                  )}
-                >
-                  {step > s.id ? <Check size={12} /> : s.id}
-                </div>
-                <span className={cn('text-xs hidden sm:block', step === s.id ? 'text-foreground font-medium' : 'text-muted-foreground')}>
-                  {s.label}
-                </span>
-                {i < STEPS.length - 1 && <div className="w-8 h-px bg-border mx-1" />}
+
+        {/* Stepper */}
+        <div className="flex items-center gap-2">
+          {STEPS.map((s, i) => (
+            <div key={s.id} className="flex items-center gap-2">
+              <div className={cn(
+                'w-[22px] h-[22px] rounded-full border flex items-center justify-center font-mono text-[11px] transition-colors',
+                step > s.id  ? 'bg-foreground text-background border-foreground' :
+                step === s.id ? 'bg-primary text-primary-foreground border-primary' :
+                                'border-border text-muted-foreground'
+              )}>
+                {step > s.id ? <Check size={11} /> : s.id}
               </div>
-            ))}
-          </div>
+              {i < STEPS.length - 1 && <div className="w-6 h-px bg-border" />}
+            </div>
+          ))}
         </div>
+
+        <Link href="/dashboard" className="text-[12px] text-muted-foreground hover:text-foreground transition-colors">
+          Pular configuração →
+        </Link>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-lg">
+      {/* Body */}
+      <div className="flex-1 flex items-center justify-center px-10 py-12">
+        <div className="w-full max-w-[640px]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-2">
+            Etapa {step} de {STEPS.length}
+          </p>
+          <h1 className="font-serif text-[32px] font-medium tracking-[-0.02em] mb-1.5">{STEP_TITLES[step]}</h1>
+          <p className="text-[14px] text-muted-foreground mb-8 max-w-[60ch]">{STEP_SUBS[step]}</p>
+
           {step === 1 && <StepEscritorio />}
           {step === 2 && <StepIdentidade />}
           {step === 3 && <StepAdvogado />}
           {step === 4 && <StepEquipe />}
           {step === 5 && <StepPlano />}
 
-          {step < 5 && (
-            <div className="flex items-center justify-between mt-8">
-              <Button variant="ghost" size="sm" disabled={step === 1} onClick={() => setStep(s => s - 1)}>
-                <ArrowLeft size={14} className="mr-1" /> Voltar
-              </Button>
-              <Button size="sm" onClick={() => setStep(s => s + 1)}>
-                Continuar <ArrowRight size={14} className="ml-1" />
-              </Button>
-            </div>
-          )}
-          {step === 5 && (
-            <div className="flex items-center justify-between mt-8">
-              <Button variant="ghost" size="sm" onClick={() => setStep(s => s - 1)}>
-                <ArrowLeft size={14} className="mr-1" /> Voltar
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/dashboard">Finalizar configuração <ArrowRight size={14} className="ml-1" /></Link>
-              </Button>
-            </div>
-          )}
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-10 pt-6 border-t border-border">
+            {step === 1 ? (
+              <Link
+                href="/gateway"
+                className="flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft size={13} /> Voltar
+              </Link>
+            ) : (
+              <button
+                onClick={() => setStep(s => s - 1)}
+                className="flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft size={13} /> Voltar
+              </button>
+            )}
+
+            {step < 5 ? (
+              <button
+                onClick={() => setStep(s => s + 1)}
+                className="flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors"
+              >
+                Continuar <ArrowRight size={13} />
+              </button>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors"
+              >
+                Concluir e entrar <ArrowRight size={13} />
+              </Link>
+            )}
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-10 py-4 flex justify-between text-[11px] text-muted-foreground">
+        <span className="font-serif italic text-[12px]">
+          &ldquo;Quando tudo está sob controle, a advocacia fica inevitável.&rdquo;
+        </span>
+        <span className="font-mono">Vetor Jurídico v2026.05</span>
+      </footer>
     </div>
   )
 }
 
+// ── Step 1: Dados do escritório ───────────────────────────────────────────────
 function StepEscritorio() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-bold">Dados do escritório</h2>
-        <p className="text-sm text-muted-foreground mt-1">Informações básicas do seu escritório de advocacia.</p>
+    <div className="grid gap-3.5">
+      <Field label="Nome do escritório">
+        <Input defaultValue="Costa, Furtado & Werneck Advogados" className="h-9 text-[13px]" />
+      </Field>
+      <div className="grid grid-cols-2 gap-3.5">
+        <Field label="CNPJ">
+          <Input defaultValue="42.881.401/0001-22" className="h-9 text-[13px]" />
+        </Field>
+        <Field label="Inscrição OAB (sociedade)">
+          <Input defaultValue="OAB/SP 12.481" className="h-9 text-[13px]" />
+        </Field>
       </div>
-      <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label>Nome do escritório</Label>
-          <Input placeholder="Ex: Mendes & Ferreira Advocacia" defaultValue="Mendes & Ferreira Advocacia" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>CNPJ (opcional)</Label>
-          <Input placeholder="00.000.000/0001-00" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Telefone</Label>
-          <Input placeholder="(11) 3456-7890" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Endereço</Label>
-          <Input placeholder="Av. Paulista, 1200, conj. 101 — São Paulo, SP" />
-        </div>
-      </div>
+      <Field label="Especialidade principal">
+        <select className="w-full h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] text-foreground focus:outline-none focus:border-primary">
+          <option>Banca generalista</option>
+          <option>Contencioso cível</option>
+          <option>Trabalhista</option>
+          <option>Tributário</option>
+          <option>Empresarial / M&A</option>
+          <option>Família e sucessões</option>
+          <option>Penal</option>
+        </select>
+      </Field>
+      <Field label="Cidade / UF">
+        <Input defaultValue="São Paulo / SP" className="h-9 text-[13px]" />
+      </Field>
     </div>
   )
 }
 
+// ── Step 2: Identidade visual ─────────────────────────────────────────────────
 function StepIdentidade() {
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setLogoPreview(url)
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-bold">Identidade visual</h2>
-        <p className="text-sm text-muted-foreground mt-1">Logo e slogan do seu escritório.</p>
-      </div>
-      <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label>Logo do escritório</Label>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-lg border-2 border-dashed bg-muted/50 flex items-center justify-center">
-              <Scale size={24} className="text-muted-foreground" />
+    <div className="grid gap-5">
+      <div className="flex items-start gap-5">
+        {/* Logo preview + upload zone */}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className={cn(
+            'w-[120px] h-[120px] rounded-[8px] border border-dashed flex flex-col items-center justify-center gap-2 shrink-0 transition-colors relative overflow-hidden',
+            logoPreview ? 'border-border' : 'border-border hover:border-muted-foreground'
+          )}
+        >
+          {logoPreview ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Upload size={18} className="text-white" />
+              </div>
+            </>
+          ) : (
+            <>
+              <Upload size={18} className="text-muted-foreground" />
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">
+                Subir<br />logo
+              </span>
+            </>
+          )}
+        </button>
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+
+        <div className="flex-1">
+          <Field label="Logo do escritório">
+            <p className="text-[12px] text-muted-foreground mb-2">PNG ou SVG, fundo transparente. Aparece em petições e e-mails.</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="px-3 py-1.5 border border-border rounded-[5px] text-[12px] font-medium bg-card hover:bg-accent transition-colors"
+              >
+                Escolher arquivo
+              </button>
+              {logoPreview && (
+                <button
+                  type="button"
+                  onClick={() => { setLogoPreview(null); if (inputRef.current) inputRef.current.value = '' }}
+                  className="px-3 py-1.5 border border-border rounded-[5px] text-[12px] text-muted-foreground hover:bg-accent transition-colors flex items-center gap-1"
+                >
+                  <X size={11} /> Remover
+                </button>
+              )}
             </div>
-            <div>
-              <Button variant="outline" size="sm">Fazer upload</Button>
-              <p className="text-xs text-muted-foreground mt-1">PNG, JPG até 2MB</p>
-            </div>
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Slogan (opcional)</Label>
-          <Input placeholder="Ex: Estratégia. Precisão. Resultado." defaultValue="Estratégia. Precisão. Resultado." />
-        </div>
-        <div className="space-y-1.5">
-          <Label>URL do escritório (slug)</Label>
-          <div className="flex items-center">
-            <span className="text-xs text-muted-foreground bg-muted border border-r-0 rounded-l-md px-3 h-9 flex items-center">vetor.app/</span>
-            <Input className="rounded-l-none" placeholder="mendes-ferreira" defaultValue="mendes-ferreira" />
-          </div>
+          </Field>
         </div>
       </div>
+
+      <Field label="Slogan">
+        <Input
+          defaultValue="Estratégia jurídica para empresas que decidem."
+          placeholder="Uma frase curta que captura o escritório"
+          className="h-9 text-[13px]"
+        />
+      </Field>
+
+      <Field label="Descrição pública">
+        <Textarea
+          rows={3}
+          defaultValue="Banca full-service com 18 anos de atuação em contencioso empresarial, trabalhista e tributário. Sede em São Paulo, operação nacional."
+          className="text-[13px] resize-none"
+        />
+      </Field>
     </div>
   )
 }
+
+// ── Step 3: Perfil profissional ───────────────────────────────────────────────
+const TODAS_AREAS = [
+  'Contencioso Cível', 'Empresarial / M&A', 'Tributário', 'Trabalhista',
+  'Família e Sucessões', 'Penal', 'Imobiliário', 'Consumidor', 'Previdenciário', 'Ambiental',
+]
 
 function StepAdvogado() {
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [areas, setAreas] = useState<string[]>(['Contencioso Cível', 'Trabalhista', 'Tributário'])
+  const photoRef = useRef<HTMLInputElement>(null)
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
+  const toggleArea = (area: string) => {
+    setAreas(prev =>
+      prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-bold">Seu perfil de advogado</h2>
-        <p className="text-sm text-muted-foreground mt-1">Informações que aparecem nos documentos e perfil público.</p>
+    <div className="grid gap-5">
+      {/* Foto de perfil */}
+      <div className="flex items-start gap-5">
+        <button
+          type="button"
+          onClick={() => photoRef.current?.click()}
+          className="w-16 h-16 rounded-full border border-dashed border-border flex items-center justify-center shrink-0 overflow-hidden hover:border-muted-foreground transition-colors relative"
+        >
+          {photoPreview ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photoPreview} alt="Foto" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Upload size={14} className="text-white" />
+              </div>
+            </>
+          ) : (
+            <User size={20} className="text-muted-foreground" />
+          )}
+        </button>
+        <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+
+        <Field label="Foto de perfil">
+          <p className="text-[12px] text-muted-foreground mb-2">Aparece em comunicados internos e na assinatura de documentos.</p>
+          <button
+            type="button"
+            onClick={() => photoRef.current?.click()}
+            className="px-3 py-1.5 border border-border rounded-[5px] text-[12px] font-medium bg-card hover:bg-accent transition-colors"
+          >
+            Escolher foto
+          </button>
+        </Field>
       </div>
-      <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label>Número OAB</Label>
-          <Input placeholder="OAB/SP 000.000" defaultValue="OAB/SP 234.567" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Áreas de atuação</Label>
-          <div className="flex flex-wrap gap-2">
-            {['Cível', 'Empresarial', 'Tributário', 'Trabalhista', 'Família', 'Criminal'].map((area) => (
+
+      <div className="grid grid-cols-[1.5fr_1fr] gap-3.5">
+        <Field label="Nome profissional">
+          <Input defaultValue="Marina Costa" className="h-9 text-[13px]" />
+        </Field>
+        <Field label="OAB">
+          <Input defaultValue="OAB/SP 184.221" className="h-9 text-[13px]" />
+        </Field>
+      </div>
+
+      {/* Áreas de atuação — multi-select */}
+      <div>
+        <p className="text-[12px] font-medium text-muted-foreground mb-2">
+          Áreas de atuação
+          <span className="ml-1.5 text-muted-foreground/60">({areas.length} selecionada{areas.length !== 1 ? 's' : ''})</span>
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {TODAS_AREAS.map(area => {
+            const selected = areas.includes(area)
+            return (
               <button
                 key={area}
-                className="px-3 py-1.5 text-xs rounded-full border bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
+                type="button"
+                onClick={() => toggleArea(area)}
+                className={cn(
+                  'inline-flex items-center gap-1 px-2.5 py-1 rounded-[3px] text-[12px] font-medium border transition-colors',
+                  selected
+                    ? 'bg-primary/10 text-primary border-primary/30'
+                    : 'bg-card text-muted-foreground border-border hover:border-muted-foreground hover:text-foreground'
+                )}
               >
+                {selected && <Check size={10} />}
                 {area}
               </button>
-            ))}
+            )
+          })}
+        </div>
+        {areas.length === 0 && (
+          <p className="text-[11px] text-muted-foreground mt-1.5">Selecione ao menos uma área.</p>
+        )}
+      </div>
+
+      <Field label="Mini-bio">
+        <Textarea
+          rows={3}
+          defaultValue="Sócia titular. 16 anos de atuação em contencioso cível e empresarial. Pós-graduação em Direito Processual Civil pela PUC-SP."
+          className="text-[13px] resize-none"
+        />
+      </Field>
+    </div>
+  )
+}
+
+// ── Step 4: Convidar equipe ───────────────────────────────────────────────────
+function StepEquipe() {
+  const [invites, setInvites] = useState([
+    { email: 'andre@vetorjuridico.com.br', role: 'admin' },
+    { email: 'julia@vetorjuridico.com.br', role: 'lawyer' },
+    { email: '', role: 'lawyer' },
+  ])
+
+  const add = () => setInvites(prev => [...prev, { email: '', role: 'lawyer' }])
+  const remove = (i: number) => setInvites(prev => prev.filter((_, j) => j !== i))
+  const update = (i: number, field: 'email' | 'role', val: string) =>
+    setInvites(prev => prev.map((inv, j) => j === i ? { ...inv, [field]: val } : inv))
+
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        {invites.map((inv, i) => (
+          <div key={i} className="grid grid-cols-[1fr_180px_32px] gap-2">
+            <Input
+              placeholder="email@exemplo.com"
+              value={inv.email}
+              onChange={e => update(i, 'email', e.target.value)}
+              className="h-9 text-[13px]"
+            />
+            <select
+              value={inv.role}
+              onChange={e => update(i, 'role', e.target.value)}
+              className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] text-foreground focus:outline-none focus:border-primary"
+            >
+              <option value="admin">Sócio / Admin</option>
+              <option value="lawyer">Advogado</option>
+              <option value="assistant">Assistente</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              className="w-8 h-9 flex items-center justify-center rounded-[5px] border border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <X size={13} />
+            </button>
           </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Bio profissional</Label>
-          <Textarea
-            placeholder="Descreva sua experiência e especialidades..."
-            className="h-24"
-            defaultValue="Advogado com 12 anos de experiência nas áreas cível, empresarial e tributário."
-          />
-        </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={add}
+        className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors self-start"
+      >
+        <Plus size={12} /> Adicionar mais um
+      </button>
+
+      <div className="flex items-start gap-2.5 p-3 bg-muted rounded-[5px] text-[12px] text-muted-foreground">
+        <span className="mt-0.5 text-primary font-medium shrink-0">i</span>
+        <span>
+          Cada convidado recebe um e-mail com instruções de cadastro. Permissões podem ser ajustadas a qualquer momento em <strong className="text-foreground">Equipe</strong>.
+        </span>
       </div>
     </div>
   )
 }
 
-function StepEquipe() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-bold">Convidar equipe</h2>
-        <p className="text-sm text-muted-foreground mt-1">Adicione membros ao escritório. Pode pular e fazer depois.</p>
-      </div>
-      <div className="space-y-4">
-        {[1, 2].map((i) => (
-          <div key={i} className="flex items-center gap-2">
-            <Input placeholder="email@escritorio.com.br" className="flex-1" />
-            <select className="h-9 rounded-md border border-input bg-transparent px-3 text-xs text-muted-foreground">
-              <option>Advogado</option>
-              <option>Assistente</option>
-              <option>Admin</option>
-            </select>
-          </div>
-        ))}
-        <Button variant="outline" size="sm" className="w-full">+ Adicionar outro</Button>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Os convites serão enviados por e-mail. Membros pagam conforme o plano escolhido.
-      </p>
-    </div>
-  )
-}
+// ── Step 5: Plano ─────────────────────────────────────────────────────────────
+const PLANS = [
+  { id: 'starter',    name: 'Starter',    price: 'R$ 89', period: '/mês',      desc: 'Até 2 advogados · 50 casos · 5 GB de documentos', featured: false },
+  { id: 'pro',        name: 'Pro',        price: 'R$ 189', period: '/mês',     desc: 'Até 8 advogados · Casos ilimitados · 50 GB · Relatórios', featured: true },
+  { id: 'enterprise', name: 'Enterprise', price: 'Sob consulta', period: '',   desc: 'Equipe ilimitada · SLA · Integrações · Suporte dedicado', featured: false },
+]
 
 function StepPlano() {
-  const [selected, setSelected] = useState<'starter' | 'pro' | 'enterprise'>('pro')
+  const [selected, setSelected] = useState<string>('pro')
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-bold">Escolha seu plano</h2>
-        <p className="text-sm text-muted-foreground mt-1">Cancele ou mude quando quiser. 14 dias grátis.</p>
-      </div>
-      <div className="space-y-3">
-        {[
-          { id: 'starter', name: 'Starter', price: 'R$ 89/mês', desc: 'Até 2 advogados, 50 casos, 5GB de documentos.', highlight: false },
-          { id: 'pro', name: 'Pro', price: 'R$ 189/mês', desc: 'Até 8 advogados, casos ilimitados, 50GB, relatórios.', highlight: true },
-          { id: 'enterprise', name: 'Enterprise', price: 'Sob consulta', desc: 'Equipe ilimitada, SLA, integração, suporte dedicado.', highlight: false },
-        ].map((plan) => (
-          <button
-            key={plan.id}
-            onClick={() => setSelected(plan.id as any)}
-            className={cn(
-              'w-full text-left p-4 rounded-lg border transition-all',
-              selected === plan.id ? 'border-primary bg-primary/5' : 'hover:border-muted-foreground/30'
-            )}
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">{plan.name}</p>
-                  {plan.highlight && <span className="text-[10px] bg-primary text-primary-foreground rounded-full px-2 py-0.5 font-medium">Recomendado</span>}
+    <div className="grid gap-3">
+      {PLANS.map(plan => (
+        <button
+          key={plan.id}
+          type="button"
+          onClick={() => setSelected(plan.id)}
+          className={cn(
+            'w-full text-left p-5 rounded-[8px] border transition-all relative',
+            selected === plan.id
+              ? 'border-foreground bg-card'
+              : 'border-border bg-card hover:border-muted-foreground/50'
+          )}
+        >
+          {plan.featured && (
+            <span className="absolute top-3 right-3 font-mono text-[10px] uppercase tracking-[0.06em] bg-foreground text-background px-2 py-0.5 rounded-[3px]">
+              Recomendado
+            </span>
+          )}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className={cn(
+                  'w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
+                  selected === plan.id ? 'border-foreground' : 'border-border'
+                )}>
+                  {selected === plan.id && <div className="w-2 h-2 rounded-full bg-foreground" />}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{plan.desc}</p>
+                <span className="text-[15px] font-medium">{plan.name}</span>
               </div>
-              <p className="text-sm font-bold shrink-0 ml-4">{plan.price}</p>
+              <p className="text-[13px] text-muted-foreground ml-6">{plan.desc}</p>
             </div>
-          </button>
-        ))}
-      </div>
+            <div className="shrink-0 text-right">
+              <span className="font-serif text-[22px] font-medium">{plan.price}</span>
+              {plan.period && <span className="text-[13px] text-muted-foreground ml-1">{plan.period}</span>}
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ── Shared Field component ────────────────────────────────────────────────────
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[12px] font-medium text-muted-foreground">{label}</label>
+      {children}
     </div>
   )
 }

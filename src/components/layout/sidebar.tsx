@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Briefcase, Calendar, FileText, FileStack,
   DollarSign, UsersRound, Bell, Settings, Building2, CreditCard,
@@ -41,6 +41,7 @@ function getInitials(name: string) {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const unreadCount = notificacoes.filter((n) => !n.read).length
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
@@ -147,7 +148,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         'shrink-0 border-t border-sidebar-border',
         collapsed ? 'px-1.5 py-2' : 'px-2 py-2'
       )}>
-        <button className={cn(
+        <button
+          onClick={() => router.push('/gateway')}
+          className={cn(
           'w-full flex items-center gap-[9px] px-2 py-1.5 rounded-[5px] hover:bg-sidebar-accent transition-colors text-left',
           collapsed && 'justify-center px-0'
         )}>

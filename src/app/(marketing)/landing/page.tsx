@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Check, Briefcase, Users, Calendar, FileText, DollarSign, UsersRound } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const MODULES = [
   { icon: Briefcase,   title: 'Casos',                desc: 'Cada processo com timeline, prazos, partes, documentos e responsável. Um único lugar para tudo.' },
@@ -31,6 +32,89 @@ const PILLARS = [
   ['Soberania dos seus dados',    'Dados em data center brasileiro. Backup contínuo. Auditoria de acesso. Você sai com tudo, quando quiser.'],
 ]
 
+const PLANS = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 'R$ 89',
+    period: '/mês',
+    desc: 'Para advogados solo ou duplas que precisam de controle sem complexidade.',
+    featured: false,
+    cta: 'Começar grátis',
+    features: [
+      'Até 2 advogados',
+      'Casos ilimitados',
+      'Clientes e contatos',
+      'Prazos & calendário',
+      'Documentos — 5 GB',
+      'Financeiro básico',
+      'App mobile incluído',
+    ],
+    absent: [
+      'Relatórios avançados',
+      'Integração PJe / eSAJ',
+      'Modelos personalizados',
+      'Suporte prioritário',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 'R$ 189',
+    period: '/mês',
+    desc: 'Para bancas em crescimento que precisam de eficiência operacional real.',
+    featured: true,
+    cta: 'Começar 14 dias grátis',
+    features: [
+      'Até 8 advogados',
+      'Casos ilimitados',
+      'Clientes e contatos',
+      'Prazos & calendário',
+      'Documentos — 50 GB',
+      'Financeiro completo',
+      'Relatórios avançados',
+      'Integração PJe / eSAJ',
+      'Modelos personalizados',
+      'Suporte prioritário',
+      'App mobile incluído',
+    ],
+    absent: [],
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 'Sob consulta',
+    period: '',
+    desc: 'Para escritórios com equipes grandes, múltiplas unidades ou exigências contratuais.',
+    featured: false,
+    cta: 'Falar com especialista',
+    features: [
+      'Advogados ilimitados',
+      'Casos ilimitados',
+      'Clientes e contatos',
+      'Prazos & calendário',
+      'Documentos — ilimitado',
+      'Financeiro completo',
+      'Relatórios avançados',
+      'Integração PJe / eSAJ',
+      'Modelos personalizados',
+      'Onboarding dedicado',
+      'SLA contratual',
+      'SSO / LDAP',
+      'Auditoria de acesso',
+      'Suporte 24 h',
+    ],
+    absent: [],
+  },
+]
+
+const FAQ = [
+  ['O período de teste é gratuito de verdade?', 'Sim. 14 dias sem cartão de crédito. Você acessa todos os recursos do plano Pro durante o trial e decide depois.'],
+  ['Posso mudar de plano depois?', 'Sim, a qualquer momento. O ajuste é proporcional ao período restante da vigência.'],
+  ['Meus dados ficam seguros?', 'Os dados ficam em data center brasileiro, com criptografia em repouso e em trânsito. Backup diário, retenção de 90 dias. Você pode exportar tudo quando quiser.'],
+  ['O sistema integra com os tribunais?', 'No plano Pro e Enterprise: PJe, eSAJ e Projudi. Novas integrações são liberadas conforme demanda.'],
+]
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -51,6 +135,7 @@ export default function LandingPage() {
           <a href="#planos" className="hover:text-foreground transition-colors">Planos</a>
         </div>
         <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           <Link href="/login" className="px-3 py-1.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-[5px] transition-colors">
             Entrar
           </Link>
@@ -208,6 +293,102 @@ export default function LandingPage() {
                 <p className="text-[14px] text-muted-foreground leading-[1.6]">{b}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PLANOS */}
+      <section id="planos" className="px-10 py-24 border-b border-border">
+        <div className="max-w-[1080px] mx-auto">
+          <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-3">05 — Planos</p>
+          <h2 className="font-serif text-[34px] leading-[1.15] tracking-[-0.02em] font-medium max-w-[22ch] mb-3">
+            Simples de entender. <em className="text-primary">Fácil de cancelar.</em>
+          </h2>
+          <p className="text-[15px] text-muted-foreground mb-12 max-w-[52ch]">
+            14 dias grátis em qualquer plano. Sem cartão de crédito. Migração assistida inclusa.
+          </p>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.id}
+                className={[
+                  'relative flex flex-col rounded-[10px] border p-6',
+                  plan.featured
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border bg-card',
+                ].join(' ')}
+              >
+                {plan.featured && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.08em] bg-primary text-primary-foreground px-3 py-1 rounded-full">
+                    Recomendado
+                  </span>
+                )}
+
+                <div className="mb-5">
+                  <p className={[
+                    'font-mono text-[11px] uppercase tracking-[0.06em] mb-3',
+                    plan.featured ? 'text-background/60' : 'text-muted-foreground',
+                  ].join(' ')}>
+                    {plan.name}
+                  </p>
+                  <div className="flex items-end gap-1 mb-2">
+                    <span className="font-serif text-[36px] leading-none font-medium">{plan.price}</span>
+                    {plan.period && (
+                      <span className={['text-[13px] mb-1', plan.featured ? 'text-background/60' : 'text-muted-foreground'].join(' ')}>
+                        {plan.period}
+                      </span>
+                    )}
+                  </div>
+                  <p className={['text-[13px] leading-[1.5]', plan.featured ? 'text-background/70' : 'text-muted-foreground'].join(' ')}>
+                    {plan.desc}
+                  </p>
+                </div>
+
+                <Link
+                  href={plan.id === 'enterprise' ? '/contato' : '/cadastro'}
+                  className={[
+                    'w-full flex items-center justify-center h-9 rounded-[5px] text-[13px] font-medium transition-colors mb-6',
+                    plan.featured
+                      ? 'bg-background text-foreground hover:bg-background/90'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90',
+                  ].join(' ')}
+                >
+                  {plan.cta}
+                </Link>
+
+                <ul className="flex flex-col gap-2 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px]">
+                      <Check size={13} className={['shrink-0 mt-0.5', plan.featured ? 'text-primary' : 'text-primary'].join(' ')} />
+                      <span className={plan.featured ? 'text-background/85' : ''}>{f}</span>
+                    </li>
+                  ))}
+                  {plan.absent.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px]">
+                      <span className="w-[13px] h-[13px] shrink-0 mt-0.5 flex items-center justify-center">
+                        <span className={['block w-2 h-px', plan.featured ? 'bg-background/30' : 'bg-border'].join(' ')} />
+                      </span>
+                      <span className={plan.featured ? 'text-background/35' : 'text-muted-foreground/50'}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* FAQ */}
+          <div className="border-t border-border pt-12">
+            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-6">Perguntas frequentes</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7">
+              {FAQ.map(([q, a]) => (
+                <div key={q}>
+                  <p className="text-[15px] font-medium mb-1.5">{q}</p>
+                  <p className="text-[13px] text-muted-foreground leading-[1.6]">{a}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
