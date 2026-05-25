@@ -104,22 +104,21 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <Link
         href="/dashboard"
         className={cn(
-          'flex items-center gap-2.5 border-b border-sidebar-border shrink-0 min-h-[49px]',
-          collapsed ? 'px-[17px] justify-center' : 'px-4'
+          'flex items-center border-b border-sidebar-border shrink-0 overflow-hidden',
+          collapsed ? 'justify-center min-h-[49px] px-[17px]' : 'p-0'
         )}
       >
-        <div className={cn(
-          'flex items-center justify-center shrink-0 rounded-[3px]',
-          'bg-primary text-primary-foreground',
-          'font-serif italic font-semibold leading-none',
-          'w-[22px] h-[22px] text-[13px]'
-        )}>
-          V
-        </div>
-        {!collapsed && (
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em] text-foreground whitespace-nowrap">
-            Vetor <em className="text-primary not-italic">Jurídico</em>
-          </span>
+        {collapsed ? (
+          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
+            V
+          </div>
+        ) : (
+          <img
+            src="/vetor_juridico_opcao4.svg"
+            alt="Vetor Jurídico"
+            className="w-full object-contain"
+            style={{ height: 64, backgroundColor: '#1A1714' }}
+          />
         )}
       </Link>
 

@@ -24,7 +24,7 @@ const PAGE_META: Record<string, { title: string; breadcrumb?: Array<{ label: str
 }
 
 const ACTION_MAP: Record<string, { label: string; href?: string }> = {
-  '/casos': { label: 'Novo Caso', href: '#' },
+
   '/documentos': { label: 'Upload', href: '#' },
   '/modelos': { label: 'Novo Modelo', href: '#' },
   '/equipe': { label: 'Convidar Membro', href: '#' },

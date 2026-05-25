@@ -47,25 +47,24 @@ export default function LoginPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background">
 
       {/* Left — brand side */}
-      <div className="hidden lg:flex flex-col justify-between bg-muted border-r border-border px-12 py-12">
-        <Link href="/landing" className="flex items-center gap-2.5">
-          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
-            V
-          </div>
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">
-            Vetor <em className="text-primary not-italic">Jurídico</em>
-          </span>
+      <div className="hidden lg:flex flex-col justify-between border-r border-border px-12 py-12" style={{ backgroundColor: '#1A1714' }}>
+        <Link href="/landing">
+          <img
+            src="/vetor_juridico_opcao4.svg"
+            alt="Vetor Jurídico"
+            className="w-full max-w-[340px] h-auto"
+          />
         </Link>
 
         <div>
-          <p className="font-serif text-[36px] leading-[1.15] tracking-[-0.02em] max-w-[20ch]">
+          <p className="font-serif text-[36px] leading-[1.15] tracking-[-0.02em] max-w-[20ch]" style={{ color: '#FBFAF6' }}>
             &ldquo;Quando tudo está sob controle, a advocacia fica{' '}
-            <em className="text-primary">inevitável.</em>&rdquo;
+            <em style={{ color: '#A8231F' }}>inevitável.</em>&rdquo;
           </p>
-          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mt-6">— Vetor Jurídico</p>
+          <p className="font-mono text-[11px] tracking-[0.08em] uppercase mt-6" style={{ color: '#5C554C' }}>— Vetor Jurídico</p>
         </div>
 
-        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · São Paulo, Brasil</p>
+        <p className="font-mono text-[11px]" style={{ color: '#5C554C' }}>v2026.05 · São Paulo, Brasil</p>
       </div>
 
       {/* Right — form */}
