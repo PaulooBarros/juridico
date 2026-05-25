@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
@@ -19,6 +19,14 @@ const ROLE_LABEL: Record<string, string> = {
 }
 
 export default function ConvitePage() {
+  return (
+    <Suspense>
+      <ConviteContent />
+    </Suspense>
+  )
+}
+
+function ConviteContent() {
   const params = useSearchParams()
   const router = useRouter()
   const token = params.get('token') ?? ''
