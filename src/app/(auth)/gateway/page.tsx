@@ -1,17 +1,26 @@
 import Link from 'next/link'
 import { Building2, Mail, ArrowRight } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
-export default function GatewayPage() {
+export default async function GatewayPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const fullName = user?.user_metadata?.full_name as string | undefined
+  const firstName = fullName?.trim().split(' ')[0] ?? 'você'
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-8 py-16">
       <div className="w-full max-w-[760px]">
 
         {/* Header */}
         <div className="text-center mb-10">
-          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mb-3">Bem-vinda, Marina</p>
+          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mb-3">
+            Olá, {firstName}
+          </p>
           <h1 className="font-serif text-[36px] font-medium tracking-[-0.02em] leading-[1.15]">Como você quer começar?</h1>
           <p className="text-[14px] text-muted-foreground mt-3 max-w-[52ch] mx-auto">
-            Você ainda não está vinculada a nenhum escritório no Vetor Jurídico.
+            Você ainda não está vinculado a nenhum escritório no Vetor Jurídico.
           </p>
         </div>
 

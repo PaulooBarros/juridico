@@ -1,7 +1,11 @@
+'use client'
+import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Check } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 const BENEFITS = [
   '14 dias grátis em todos os recursos',
@@ -11,6 +15,44 @@ const BENEFITS = [
 ]
 
 export default function CadastroPage() {
+  const router = useRouter()
+  const [nome, setNome] = useState('')
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [aceite, setAceite] = useState(false)
+  const [erro, setErro] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!aceite) { setErro('Aceite os termos para continuar.'); return }
+    if (senha.length < 10) { setErro('A senha deve ter no mínimo 10 caracteres.'); return }
+
+    setErro('')
+    setLoading(true)
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: senha,
+      options: {
+        data: { full_name: nome },
+      },
+    })
+
+    if (error) {
+      setErro(error.message === 'User already registered'
+        ? 'Este e-mail já está cadastrado.'
+        : 'Não foi possível criar a conta. Tente novamente.'
+      )
+      setLoading(false)
+      return
+    }
+
+    router.push('/gateway')
+    router.refresh()
+  }
+
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background">
 
@@ -58,12 +100,15 @@ export default function CadastroPage() {
           <h1 className="font-serif text-[28px] font-medium tracking-[-0.015em] mb-1.5">Criar conta</h1>
           <p className="text-[13px] text-muted-foreground mb-6">Comece agora. Configure o escritório no próximo passo.</p>
 
-          <form action="/gateway" className="flex flex-col gap-3.5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
             <div className="flex flex-col gap-1.5">
               <Label className="text-[12px] font-medium text-muted-foreground">Nome completo</Label>
               <Input
                 type="text"
                 placeholder="Como aparece na sua OAB"
+                value={nome}
+                onChange={e => setNome(e.target.value)}
+                required
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
             </div>
@@ -73,6 +118,9 @@ export default function CadastroPage() {
               <Input
                 type="email"
                 placeholder="voce@escritorio.com.br"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
             </div>
@@ -82,13 +130,21 @@ export default function CadastroPage() {
               <Input
                 type="password"
                 placeholder="Mínimo 10 caracteres"
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                required
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
               <p className="text-[11px] text-muted-foreground">Use uma combinação de letras, números e símbolos.</p>
             </div>
 
             <label className="flex items-start gap-2.5 text-[12px] text-muted-foreground cursor-pointer">
-              <input type="checkbox" defaultChecked className="mt-0.5" />
+              <input
+                type="checkbox"
+                checked={aceite}
+                onChange={e => setAceite(e.target.checked)}
+                className="mt-0.5"
+              />
               <span>
                 Concordo com os{' '}
                 <a className="text-primary hover:underline cursor-pointer">Termos de Uso</a>
@@ -97,12 +153,17 @@ export default function CadastroPage() {
               </span>
             </label>
 
-            <Link
-              href="/gateway"
-              className="mt-2 w-full flex items-center justify-center h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors"
+            {erro && (
+              <p className="text-[12px] text-destructive">{erro}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full flex items-center justify-center h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Criar conta
-            </Link>
+              {loading ? 'Criando conta…' : 'Criar conta'}
+            </button>
           </form>
 
           <p className="text-center text-[13px] text-muted-foreground mt-8">

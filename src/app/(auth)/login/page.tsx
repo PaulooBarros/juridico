@@ -1,8 +1,36 @@
+'use client'
+import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setErro('')
+    setLoading(true)
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+
+    if (error) {
+      setErro('E-mail ou senha incorretos.')
+      setLoading(false)
+      return
+    }
+
+    router.push('/dashboard')
+    router.refresh()
+  }
+
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-background">
 
@@ -40,13 +68,15 @@ export default function LoginPage() {
           <h1 className="font-serif text-[28px] font-medium tracking-[-0.015em] mb-1.5">Entrar</h1>
           <p className="text-[13px] text-muted-foreground mb-6">Acesse sua conta para continuar.</p>
 
-          <form action="/escritorios" className="flex flex-col gap-3.5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
             <div className="flex flex-col gap-1.5">
               <Label className="text-[12px] font-medium text-muted-foreground">E-mail</Label>
               <Input
                 type="email"
                 placeholder="voce@escritorio.com.br"
-                defaultValue="marina@vetorjuridico.com.br"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
             </div>
@@ -61,17 +91,24 @@ export default function LoginPage() {
               <Input
                 type="password"
                 placeholder="••••••••"
-                defaultValue="demonstracao"
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                required
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
             </div>
 
-            <Link
-              href="/escritorios"
-              className="mt-2 w-full flex items-center justify-center h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors"
+            {erro && (
+              <p className="text-[12px] text-destructive">{erro}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full flex items-center justify-center h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Entrar
-            </Link>
+              {loading ? 'Entrando…' : 'Entrar'}
+            </button>
           </form>
 
           <div className="flex items-center gap-3 my-6">

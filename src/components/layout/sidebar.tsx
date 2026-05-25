@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Users, Briefcase, Calendar, FileText, FileStack,
   DollarSign, UsersRound, Bell, Settings, Building2, CreditCard,
@@ -43,6 +44,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const unreadCount = notificacoes.filter((n) => !n.read).length
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
@@ -149,7 +157,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         collapsed ? 'px-1.5 py-2' : 'px-2 py-2'
       )}>
         <button
-          onClick={() => router.push('/gateway')}
+          onClick={handleLogout}
           className={cn(
           'w-full flex items-center gap-[9px] px-2 py-1.5 rounded-[5px] hover:bg-sidebar-accent transition-colors text-left',
           collapsed && 'justify-center px-0'
