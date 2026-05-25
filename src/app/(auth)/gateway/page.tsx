@@ -1,19 +1,66 @@
+'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Building2, Mail, ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 
-export default async function GatewayPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+function extrairToken(input: string): string {
+  try {
+    const url = new URL(input)
+    return url.searchParams.get('token') ?? input.trim()
+  } catch {
+    return input.trim()
+  }
+}
 
-  const fullName = user?.user_metadata?.full_name as string | undefined
-  const firstName = fullName?.trim().split(' ')[0] ?? 'você'
+export default function GatewayPage() {
+  const router = useRouter()
+  const [firstName, setFirstName] = useState('você')
+  const [codigoInput, setCodigoInput] = useState('')
+  const [validando, setValidando] = useState(false)
+  const [erroConvite, setErroConvite] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const nome = user?.user_metadata?.full_name as string | undefined
+      if (nome) setFirstName(nome.trim().split(' ')[0])
+    })
+  }, [])
+
+  async function handleValidar() {
+    const token = extrairToken(codigoInput)
+    if (!token) return
+    setErroConvite('')
+    setValidando(true)
+
+    const supabase = createClient()
+    const { data, error } = await supabase.rpc('get_convite_by_token', { p_token: token })
+
+    if (error || !data) {
+      setErroConvite('Convite não encontrado. Verifique o código e tente novamente.')
+      setValidando(false)
+      return
+    }
+    if (data.accepted_at) {
+      setErroConvite('Este convite já foi utilizado.')
+      setValidando(false)
+      return
+    }
+    if (new Date(data.expires_at) < new Date()) {
+      setErroConvite('Este convite expirou.')
+      setValidando(false)
+      return
+    }
+
+    router.push(`/convite?token=${token}`)
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-8 py-16">
       <div className="w-full max-w-[760px]">
 
-        {/* Header */}
         <div className="text-center mb-10">
           <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mb-3">
             Olá, {firstName}
@@ -24,7 +71,6 @@ export default async function GatewayPage() {
           </p>
         </div>
 
-        {/* Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
             href="/onboarding"
@@ -48,17 +94,27 @@ export default async function GatewayPage() {
             <div>
               <h3 className="font-serif text-[20px] font-medium tracking-[-0.01em] mb-1.5">Tenho um convite</h3>
               <p className="text-[13px] text-muted-foreground leading-[1.55]">
-                Insira o código que recebeu por e-mail para entrar em um escritório existente.
+                Cole o link ou código que recebeu para entrar em um escritório existente.
               </p>
             </div>
-            <div className="flex gap-2 mt-auto">
-              <input
-                className="flex-1 h-9 px-3 text-[13px] bg-background border border-border rounded-[5px] focus:outline-none focus:border-primary"
-                placeholder="Código do convite"
-              />
-              <button className="px-3 h-9 border border-border bg-card rounded-[5px] text-[13px] font-medium hover:bg-accent transition-colors">
-                Validar
-              </button>
+            <div className="flex flex-col gap-2 mt-auto">
+              <div className="flex gap-2">
+                <input
+                  value={codigoInput}
+                  onChange={e => { setCodigoInput(e.target.value); setErroConvite('') }}
+                  onKeyDown={e => e.key === 'Enter' && handleValidar()}
+                  className="flex-1 h-9 px-3 text-[13px] bg-background border border-border rounded-[5px] focus:outline-none focus:border-primary"
+                  placeholder="Link ou código do convite"
+                />
+                <button
+                  onClick={handleValidar}
+                  disabled={!codigoInput.trim() || validando}
+                  className="px-3 h-9 border border-border bg-card rounded-[5px] text-[13px] font-medium hover:bg-accent transition-colors disabled:opacity-50"
+                >
+                  {validando ? '…' : 'Validar'}
+                </button>
+              </div>
+              {erroConvite && <p className="text-[11px] text-destructive">{erroConvite}</p>}
             </div>
           </div>
         </div>
