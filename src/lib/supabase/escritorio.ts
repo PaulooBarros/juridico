@@ -36,6 +36,47 @@ function gerarSlug(nome: string) {
     .replace(/^-|-$/g, '')
 }
 
+export type Escritorio = {
+  id: string
+  nome: string
+  cnpj: string | null
+  oab_sociedade: string | null
+  especialidade: string | null
+  cidade_uf: string | null
+  slogan: string | null
+  descricao: string | null
+  logo_url: string | null
+  slug: string | null
+  plano: string
+  created_at: string
+}
+
+export type EscritorioUpdate = Partial<Omit<Escritorio, 'id' | 'created_at' | 'plano'>>
+
+/** Retorna o escritório completo do usuário logado, ou null. */
+export async function getMeuEscritorio(): Promise<Escritorio | null> {
+  const supabase = createClient()
+  const { data: membro } = await supabase
+    .from('membros')
+    .select('escritorio_id')
+    .limit(1)
+    .maybeSingle()
+  if (!membro?.escritorio_id) return null
+  const { data } = await supabase
+    .from('escritorios')
+    .select('*')
+    .eq('id', membro.escritorio_id)
+    .single()
+  return data as Escritorio | null
+}
+
+/** Atualiza campos do escritório (owner/admin). */
+export async function atualizarEscritorio(id: string, input: EscritorioUpdate): Promise<void> {
+  const supabase = createClient()
+  const { error } = await supabase.from('escritorios').update(input).eq('id', id)
+  if (error) throw error
+}
+
 /** Retorna o escritorio_id do usuário logado, ou null se não tiver nenhum. */
 export async function getMeuEscritorioId(): Promise<string | null> {
   const supabase = createClient()
