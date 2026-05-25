@@ -1,11 +1,12 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Bell, ChevronRight, Plus, Search, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
-import { currentUser, notificacoes } from '@/lib/mock'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 interface TopbarProps {
@@ -16,8 +17,15 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps) {
-  const unread = notificacoes.filter((n) => !n.read).length
   const { theme, setTheme } = useTheme()
+  const [userName, setUserName] = useState('')
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      const meta = data.user?.user_metadata
+      setUserName(meta?.nome_profissional || meta?.full_name || data.user?.email || '')
+    })
+  }, [])
 
   return (
     <header
@@ -74,9 +82,6 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
             className="relative w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <Bell size={15} />
-            {unread > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary border-2 border-background" />
-            )}
           </Link>
 
           {/* Theme toggle */}
@@ -97,14 +102,13 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
             className="flex items-center gap-2 rounded-[5px] px-2 py-1 hover:bg-accent transition-colors"
           >
             <Avatar className="w-[22px] h-[22px]">
-              <AvatarFallback className={cn(
-                'text-[9px] font-semibold',
-                'bg-foreground text-background'
-              )}>
-                {getInitials(currentUser.name)}
+              <AvatarFallback className={cn('text-[9px] font-semibold', 'bg-foreground text-background')}>
+                {userName ? getInitials(userName) : '?'}
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs font-medium hidden sm:block max-w-[100px] truncate">{currentUser.name}</span>
+            <span className="text-xs font-medium hidden sm:block max-w-[100px] truncate">
+              {userName || '…'}
+            </span>
           </Link>
         </div>
       </div>
