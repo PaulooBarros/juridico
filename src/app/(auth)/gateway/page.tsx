@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Building2, Mail, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
 
 function extrairToken(input: string): string {
   try {
@@ -22,12 +23,19 @@ export default function GatewayPage() {
   const [erroConvite, setErroConvite] = useState('')
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    async function init() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
       const nome = user?.user_metadata?.full_name as string | undefined
       if (nome) setFirstName(nome.trim().split(' ')[0])
-    })
-  }, [])
+
+      // Já tem escritório — vai direto para o dashboard
+      const escritorioId = await getMeuEscritorioId()
+      if (escritorioId) router.replace('/dashboard')
+    }
+    init()
+  }, [router])
 
   async function handleValidar() {
     const token = extrairToken(codigoInput)

@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
+import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
 
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') ?? '/dashboard'
+  const nextParam = searchParams.get('next')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
@@ -29,7 +30,16 @@ export default function LoginPage() {
       return
     }
 
-    router.push(next)
+    // Se veio com ?next= (ex: fluxo de convite), respeita o destino
+    if (nextParam) {
+      router.push(nextParam)
+      router.refresh()
+      return
+    }
+
+    // Sem ?next=: decide pelo escritório do usuário
+    const escritorioId = await getMeuEscritorioId()
+    router.push(escritorioId ? '/dashboard' : '/gateway')
     router.refresh()
   }
 

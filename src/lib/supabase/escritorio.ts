@@ -36,6 +36,17 @@ function gerarSlug(nome: string) {
     .replace(/^-|-$/g, '')
 }
 
+/** Retorna o escritorio_id do usuário logado, ou null se não tiver nenhum. */
+export async function getMeuEscritorioId(): Promise<string | null> {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('membros')
+    .select('escritorio_id')
+    .limit(1)
+    .maybeSingle()
+  return data?.escritorio_id ?? null
+}
+
 export async function criarEscritorioCompleto(input: CriarEscritorioInput) {
   const supabase = createClient()
 
