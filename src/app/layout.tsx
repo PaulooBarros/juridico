@@ -14,6 +14,7 @@ const newsreader = Newsreader({
   weight: ['400', '500', '600'],
   style: ['normal', 'italic'],
   display: 'swap',
+  adjustFontFallback: false,
 })
 
 const jetbrainsMono = JetBrains_Mono({
