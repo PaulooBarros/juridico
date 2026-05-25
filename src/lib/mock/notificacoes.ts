@@ -1,0 +1,88 @@
+import type { Notification } from '@/lib/types'
+
+export const notificacoes: Notification[] = [
+  {
+    id: 'not-001', officeId: 'off-001', userId: 'usr-001',
+    type: 'deadline_overdue', priority: 'critical',
+    title: 'Prazo vencido — Certificado Digital',
+    message: 'O certificado digital A3 do escritório venceu há 9 dias. Renove urgentemente para continuar protocolando petições.',
+    read: false, link: '/notificacoes', createdAt: '2024-05-16T08:00:00Z',
+  },
+  {
+    id: 'not-002', officeId: 'off-001', userId: 'usr-001',
+    type: 'deadline_due', priority: 'critical',
+    title: 'Prazo fatal amanhã — MS ICMS Bom Preço',
+    message: 'Razões finais do Mandado de Segurança 1001234-56.2024.4.03.6100 vencem amanhã (20/05). Prazo fatal.',
+    read: false, link: '/casos/cas-004', createdAt: '2024-05-19T09:00:00Z',
+  },
+  {
+    id: 'not-003', officeId: 'off-001', userId: 'usr-002',
+    type: 'deadline_due', priority: 'critical',
+    title: 'Audiência em 3 dias — TechBrasil Trabalhista',
+    message: 'Audiência de instrução do processo 0005678-90.2024.5.02.0001 será em 22/05 às 14h. Confirme presença e documentos.',
+    read: false, link: '/casos/cas-002', createdAt: '2024-05-19T09:00:00Z',
+  },
+  {
+    id: 'not-004', officeId: 'off-001', userId: 'usr-001',
+    type: 'deadline_due', priority: 'high',
+    title: 'Prazo em 9 dias — Ajuizamento ação principal',
+    message: 'Prazo decadencial para ajuizamento da ação principal (Cautelar São Francisco) vence em 11/06. Preparar petição.',
+    read: false, link: '/casos/cas-014', createdAt: '2024-05-19T10:00:00Z',
+  },
+  {
+    id: 'not-005', officeId: 'off-001', userId: 'usr-003',
+    type: 'deadline_due', priority: 'high',
+    title: 'Prazo em 5 dias — Laudo pericial São Francisco',
+    message: 'Manifestação sobre laudo do engenheiro agrimensor deve ser protocolada até 24/05.',
+    read: false, link: '/casos/cas-007', createdAt: '2024-05-19T10:30:00Z',
+  },
+  {
+    id: 'not-006', officeId: 'off-001', userId: 'usr-001',
+    type: 'payment_overdue', priority: 'high',
+    title: 'Honorários vencidos — Clínica Bem Estar',
+    message: 'Parcela de R$ 9.800,00 referente ao processo de Cumprimento de Sentença está vencida há 49 dias.',
+    read: false, link: '/financeiro', createdAt: '2024-05-18T08:00:00Z',
+  },
+  {
+    id: 'not-007', officeId: 'off-001', userId: 'usr-001',
+    type: 'document_added', priority: 'medium',
+    title: 'Novo documento — Laudo de Demarcação',
+    message: 'Dr. Lucas Souza adicionou o laudo de demarcação ao caso de Reintegração de Posse da Agropecuária São Francisco.',
+    read: true, link: '/documentos/doc-020', createdAt: '2024-05-09T14:30:00Z',
+  },
+  {
+    id: 'not-008', officeId: 'off-001', userId: 'usr-001',
+    type: 'payment_received', priority: 'info',
+    title: 'Pagamento recebido — Agropecuária São Francisco',
+    message: 'Adiantamento de despesas no valor de R$ 5.000,00 confirmado (Cautelar urgente).',
+    read: true, link: '/financeiro', createdAt: '2024-05-12T15:00:00Z',
+  },
+  {
+    id: 'not-009', officeId: 'off-001', userId: 'usr-001',
+    type: 'case_updated', priority: 'medium',
+    title: 'Decisão liminar favorável — MS ICMS',
+    message: 'Juiz concedeu liminar no Mandado de Segurança de Supermercados Bom Preço. Suspensão imediata da cobrança do DIFAL.',
+    read: true, link: '/casos/cas-004', createdAt: '2024-04-20T17:30:00Z',
+  },
+  {
+    id: 'not-010', officeId: 'off-001', userId: 'usr-001',
+    type: 'new_member', priority: 'info',
+    title: 'Fernando Alves entrou no escritório',
+    message: 'Fernando Alves aceitou o convite e foi adicionado ao escritório como Administrador.',
+    read: true, createdAt: '2023-09-01T10:00:00Z',
+  },
+  {
+    id: 'not-011', officeId: 'off-001', userId: 'usr-002',
+    type: 'case_updated', priority: 'medium',
+    title: 'Reclamação trabalhista — Designação de audiência',
+    message: 'Audiência de instrução designada para 22/05/2024 às 14h na 1ª VT de São Paulo.',
+    read: true, link: '/casos/cas-002', createdAt: '2024-04-15T10:30:00Z',
+  },
+  {
+    id: 'not-012', officeId: 'off-001', userId: 'usr-001',
+    type: 'system', priority: 'info',
+    title: 'Backup automático concluído',
+    message: 'Backup mensal de todos os dados do escritório concluído com sucesso em 01/05/2024.',
+    read: true, createdAt: '2024-05-01T02:00:00Z',
+  },
+]

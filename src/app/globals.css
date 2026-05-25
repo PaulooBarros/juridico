@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* LIGHT MODE — warm paper + oxblood */
+  :root {
+    --background: 40 23% 95%;           /* #F6F4EF warm paper */
+    --foreground: 28 14% 9%;            /* #1A1714 */
+    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card-foreground: 28 14% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 28 14% 9%;
+    --primary: 357 62% 27%;             /* #6E1A1E oxblood */
+    --primary-foreground: 46 33% 97%;   /* #FBFAF6 warm white */
+    --secondary: 42 18% 91%;            /* #EFEDE6 bg-sunken */
+    --secondary-foreground: 28 14% 9%;
+    --muted: 46 33% 97%;                /* #FBFAF6 bg-elev */
+    --muted-foreground: 30 9% 33%;      /* #5C554C fg-muted */
+    --accent: 42 18% 91%;               /* bg-sunken for hover */
+    --accent-foreground: 28 14% 9%;
+    --destructive: 2 69% 39%;           /* #A8231F */
+    --destructive-foreground: 46 33% 97%;
+    --border: 40 9% 85%;                /* effective from rgba(20,16,12,0.10) */
+    --input: 40 9% 85%;
+    --ring: 357 62% 27%;
+    --warning: 38 100% 27%;             /* #8A5A00 */
+    --warning-foreground: 46 33% 97%;
+    --success: 134 38% 30%;             /* #2F6A3A */
+    --success-foreground: 46 33% 97%;
+    --sidebar: 46 33% 97%;              /* #FBFAF6 bg-elev */
+    --sidebar-border: 40 9% 85%;
+    --sidebar-foreground: 28 14% 9%;
+    --sidebar-accent: 42 18% 91%;
+    --sidebar-accent-foreground: 28 14% 9%;
+    --radius: 0.3125rem;                /* 5px — dense, serious */
+  }
+
+  /* DARK MODE */
+  .dark {
+    --background: 28 18% 5%;            /* #0E0C0A */
+    --foreground: 42 29% 93%;           /* #F2EFE8 */
+    --card: 28 14% 9%;                  /* #1A1714 */
+    --card-foreground: 42 29% 93%;
+    --popover: 32 17% 7%;              /* #15120F */
+    --popover-foreground: 42 29% 93%;
+    --primary: 357 46% 58%;             /* #C46469 warm oxblood for dark */
+    --primary-foreground: 28 18% 5%;
+    --secondary: 28 22% 3%;             /* #0A0907 bg-sunken dark */
+    --secondary-foreground: 42 29% 93%;
+    --muted: 32 17% 7%;                 /* #15120F bg-elev dark */
+    --muted-foreground: 36 7% 63%;      /* #A8A096 */
+    --accent: 32 17% 13%;
+    --accent-foreground: 42 29% 93%;
+    --destructive: 2 66% 54%;           /* #E07A75 */
+    --destructive-foreground: 28 18% 5%;
+    --border: 30 5% 12%;
+    --input: 30 5% 12%;
+    --ring: 357 46% 58%;
+    --warning: 38 68% 57%;              /* #D6A24A */
+    --warning-foreground: 28 18% 5%;
+    --success: 134 34% 55%;             /* #69B07A */
+    --success-foreground: 28 18% 5%;
+    --sidebar: 32 17% 7%;               /* #15120F */
+    --sidebar-border: 30 5% 12%;
+    --sidebar-foreground: 42 29% 93%;
+    --sidebar-accent: 32 17% 13%;
+    --sidebar-accent-foreground: 42 29% 93%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv11", "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/30; }
+
+/* Fade-in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-fade-in { animation: fade-in 200ms cubic-bezier(.2,.6,.2,1); }
+
+/* Dotted grid background for hero sections */
+.dotted-bg {
+  background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Tabular numbers utility */
+.tabular { font-variant-numeric: tabular-nums; }

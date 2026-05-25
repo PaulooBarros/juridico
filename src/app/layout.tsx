@@ -1,0 +1,41 @@
+import type { Metadata } from 'next'
+import { Inter, Newsreader, JetBrains_Mono } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/components/providers/theme-provider'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
+
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  variable: '--font-newsreader',
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  weight: ['400', '500', '600'],
+  display: 'swap',
+})
+
+export const metadata: Metadata = {
+  title: { default: 'Vetor Jurídico', template: '%s · Vetor Jurídico' },
+  description: 'Quando tudo está sob controle, a advocacia fica inevitável.',
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={`${inter.variable} ${newsreader.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
