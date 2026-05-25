@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, Building, Gavel, Calendar, User } from 'lucide-react'
+import { FileText, Building, Gavel, User } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,7 @@ import { EmptyState } from '@/features/shared/empty-state'
 import { createClient } from '@/lib/supabase/server'
 import { formatArea, formatPhase, formatDate, formatCurrency } from '@/lib/utils'
 import { CasoActions } from './caso-actions'
+import { PrazosTab } from './prazos-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -156,14 +157,10 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
           </div>
         </TabsContent>
 
-        {/* Prazos — em breve */}
+        {/* Prazos */}
         <TabsContent value="prazos">
           <div className="mt-4">
-            <EmptyState
-              icon={Calendar}
-              title="Em breve"
-              description="O módulo de prazos será integrado na próxima etapa."
-            />
+            <PrazosTab casoId={params.id} />
           </div>
         </TabsContent>
 

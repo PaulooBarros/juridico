@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Loader2 } from 'lucide-react'
+import { Loader2, CalendarDays, CheckCircle2, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getMeuEscritorio, type Escritorio } from '@/lib/supabase/escritorio'
 
@@ -34,6 +34,12 @@ export default function ConfiguracoesPage() {
   const [membrosCount,   setMembrosCount]   = useState(0)
   const [casosCount,     setCasosCount]     = useState(0)
 
+  // Integrações
+  const [googleConectado,   setGoogleConectado]   = useState(false)
+  const [loadingGoogle,     setLoadingGoogle]     = useState(true)
+  const [disconnecting,     setDisconnecting]     = useState(false)
+  const [googleMensagem,    setGoogleMensagem]    = useState('')
+
   useEffect(() => {
     async function carregarPlano() {
       const esc = await getMeuEscritorio()
@@ -51,6 +57,59 @@ export default function ConfiguracoesPage() {
     }
     carregarPlano()
   }, [])
+
+  const [activeTab, setActiveTab] = useState('notificacoes')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tab    = params.get('tab')
+    const sucesso = params.get('sucesso')
+    const erro    = params.get('erro')
+
+    if (tab) setActiveTab(tab)
+
+    if (sucesso === 'google-conectado') {
+      setGoogleConectado(true)
+      setLoadingGoogle(false)
+      setGoogleMensagem('Google Calendar conectado com sucesso.')
+      window.history.replaceState({}, '', '/configuracoes?tab=integracoes')
+      return
+    }
+
+    if (erro) {
+      setGoogleMensagem('Erro ao conectar com o Google. Tente novamente.')
+      setLoadingGoogle(false)
+      window.history.replaceState({}, '', '/configuracoes?tab=integracoes')
+    }
+
+    async function verificarGoogle() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoadingGoogle(false); return }
+      const { data } = await supabase
+        .from('google_calendar_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      setGoogleConectado(!!data)
+      setLoadingGoogle(false)
+    }
+    verificarGoogle()
+  }, [])
+
+  async function handleDesconectarGoogle() {
+    setDisconnecting(true)
+    setGoogleMensagem('')
+    try {
+      await fetch('/api/google/disconnect', { method: 'POST' })
+      setGoogleConectado(false)
+      setGoogleMensagem('Google Calendar desconectado.')
+    } catch {
+      setGoogleMensagem('Erro ao desconectar. Tente novamente.')
+    } finally {
+      setDisconnecting(false)
+    }
+  }
 
   async function handleAlterarSenha(e: React.FormEvent) {
     e.preventDefault()
@@ -74,11 +133,12 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="max-w-3xl space-y-6 animate-fade-in">
-      <Tabs defaultValue="notificacoes">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
           <TabsTrigger value="plano">Plano</TabsTrigger>
+          <TabsTrigger value="integracoes">Integrações</TabsTrigger>
         </TabsList>
 
         {/* Notificações */}
@@ -257,6 +317,86 @@ export default function ConfiguracoesPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Integrações */}
+        <TabsContent value="integracoes" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Google Calendar</CardTitle>
+              <CardDescription>
+                Sincronize prazos automaticamente com seu Google Calendar. Cada prazo cadastrado gera um evento com lembrete.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingGoogle ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 size={14} className="animate-spin" />
+                  <span className="text-[13px]">Verificando conexão…</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                        <CalendarDays size={18} className="text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Google Calendar</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {googleConectado ? (
+                            <>
+                              <CheckCircle2 size={11} className="text-emerald-500" />
+                              <span className="text-[11px] text-emerald-600 dark:text-emerald-400">Conectado</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle size={11} className="text-muted-foreground" />
+                              <span className="text-[11px] text-muted-foreground">Não conectado</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {googleConectado ? (
+                      <button
+                        onClick={handleDesconectarGoogle}
+                        disabled={disconnecting}
+                        className="px-3 h-8 border border-border rounded-[5px] text-xs text-muted-foreground hover:bg-accent transition-colors disabled:opacity-60"
+                      >
+                        {disconnecting ? 'Desconectando…' : 'Desconectar'}
+                      </button>
+                    ) : (
+                      <a
+                        href="/api/google/auth"
+                        className="px-3 h-8 bg-primary text-primary-foreground rounded-[5px] text-xs font-medium hover:bg-primary/90 transition-colors flex items-center"
+                      >
+                        Conectar
+                      </a>
+                    )}
+                  </div>
+
+                  {googleMensagem && (
+                    <p className={`text-[12px] ${googleMensagem.includes('sucesso') || googleMensagem.includes('desconectado') ? 'text-emerald-600' : 'text-destructive'}`}>
+                      {googleMensagem}
+                    </p>
+                  )}
+
+                  {googleConectado && (
+                    <div className="rounded-lg bg-muted/40 border p-3 space-y-1.5">
+                      <p className="text-[12px] font-medium">Como funciona</p>
+                      <ul className="text-[11px] text-muted-foreground space-y-1">
+                        <li>• Cada prazo cadastrado em um caso cria um evento no seu Calendar.</li>
+                        <li>• Lembretes automáticos: 24h antes por e-mail e 1h antes por notificação.</li>
+                        <li>• Ao editar ou excluir um prazo, o evento é atualizado automaticamente.</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
