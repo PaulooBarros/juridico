@@ -38,6 +38,12 @@ const pool = buildPool();
 export const auth = betterAuth({
   database: pool,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  socialProviders: {
+    google: {
+      clientId:     process.env.NEXT_GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.NEXT_GOOGLE_CLIENT_SECRET!,
+    },
+  },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 10,

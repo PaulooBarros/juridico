@@ -5,7 +5,7 @@ function makeOAuth2Client() {
   return new google.auth.OAuth2(
     process.env.NEXT_GOOGLE_CLIENT_ID,
     process.env.NEXT_GOOGLE_CLIENT_SECRET,
-    process.env.NEXT_GOOGLE_REDIRECT_URI,
+    process.env.NEXT_GOOGLE_CALENDAR_REDIRECT_URI,
   )
 }
 
