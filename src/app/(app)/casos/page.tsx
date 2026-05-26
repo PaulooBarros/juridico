@@ -83,7 +83,7 @@ export default function CasosPage() {
     <div className="space-y-5 animate-fade-in">
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -111,7 +111,7 @@ export default function CasosPage() {
         </div>
         <button
           onClick={() => { setEditando(null); setModalAberto(true) }}
-          className="flex items-center gap-1.5 px-3 h-9 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:bg-primary/90 transition-colors shrink-0"
+          className="flex items-center justify-center gap-1.5 px-3 h-9 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:bg-primary/90 transition-colors shrink-0 w-full sm:w-auto"
         >
           <Plus size={14} /> Novo caso
         </button>

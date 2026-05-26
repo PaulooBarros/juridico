@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 
 const BENEFITS = [
-  '14 dias grátis em todos os recursos',
-  'Sem cartão de crédito',
+  'Plano Free para sempre, sem cartão',
+  '14 dias grátis nos planos pagos',
   'Migração assistida de planilhas e Drive',
   'LGPD nativo, dados no Brasil',
 ]
