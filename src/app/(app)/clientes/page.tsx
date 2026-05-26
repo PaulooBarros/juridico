@@ -75,7 +75,8 @@ export default function ClientesPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border overflow-hidden bg-card">
+      <div className="rounded-lg border overflow-hidden bg-card overflow-x-auto">
+        <div className="min-w-[680px]">
         <div className="grid grid-cols-[2fr_1.5fr_1fr_80px_100px_72px] gap-0 border-b bg-muted/30">
           {['Cliente', 'Documento / Contato', 'Cidade', 'Desde', 'Status', ''].map((h, i) => (
             <div key={i} className="px-4 py-2.5 text-xs font-semibold text-muted-foreground">{h}</div>
@@ -139,6 +140,7 @@ export default function ClientesPage() {
             ))}
           </div>
         )}
+        </div>{/* min-w */}
       </div>
 
       {!loading && (
