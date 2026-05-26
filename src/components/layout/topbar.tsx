@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Bell, ChevronRight, Plus, Search, Moon, Sun } from 'lucide-react'
+import { Bell, ChevronRight, Plus, Search, Moon, Sun, Menu } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -10,13 +10,14 @@ import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 interface TopbarProps {
-  title: string
+  title:       string
   breadcrumb?: Array<{ label: string; href?: string }>
-  action?: { label: string; href?: string; onClick?: () => void }
+  action?:     { label: string; href?: string; onClick?: () => void }
   sidebarWidth: number
+  onMenuOpen:  () => void
 }
 
-export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps) {
+export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: TopbarProps) {
   const { theme, setTheme } = useTheme()
   const [userName, setUserName] = useState('')
 
@@ -29,14 +30,24 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
 
   return (
     <header
-      className="fixed top-0 right-0 h-[49px] border-b border-border bg-background z-30 flex items-center"
+      className="fixed top-0 right-0 h-[49px] border-b border-border bg-background z-30 flex items-center left-0"
       style={{ left: sidebarWidth }}
     >
-      <div className="flex items-center justify-between w-full px-5">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-[13px] text-muted-foreground min-w-0">
+      <div className="flex items-center justify-between w-full px-4 lg:px-5 gap-2">
+
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuOpen}
+          className="lg:hidden w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0"
+          aria-label="Abrir menu"
+        >
+          <Menu size={16} />
+        </button>
+
+        {/* Title / Breadcrumbs */}
+        <div className="flex items-center gap-2 text-[13px] text-muted-foreground min-w-0 flex-1">
           {breadcrumb && breadcrumb.length > 0 && breadcrumb.map((item, i) => (
-            <span key={i} className="flex items-center gap-2 shrink-0">
+            <span key={i} className="hidden sm:flex items-center gap-2 shrink-0">
               {item.href ? (
                 <Link href={item.href} className="hover:text-foreground transition-colors">{item.label}</Link>
               ) : (
@@ -53,7 +64,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
           {action && (
             <Button
               size="sm"
-              className="h-7 px-3 text-xs gap-1.5 mr-2"
+              className="hidden sm:flex h-7 px-3 text-xs gap-1.5 mr-2"
               asChild={!!action.href}
               onClick={action.onClick}
             >
@@ -72,7 +83,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
           )}
 
           {/* Search */}
-          <button className="w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+          <button className="hidden sm:flex w-[30px] h-[30px] rounded-[5px] items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
             <Search size={15} />
           </button>
 
@@ -94,7 +105,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
           </button>
 
           {/* Separator */}
-          <div className="w-px h-[18px] bg-border mx-1.5" />
+          <div className="w-px h-[18px] bg-border mx-1" />
 
           {/* User */}
           <Link
@@ -106,7 +117,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth }: TopbarProps)
                 {userName ? getInitials(userName) : '?'}
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs font-medium hidden sm:block max-w-[100px] truncate">
+            <span className="text-xs font-medium hidden md:block max-w-[100px] truncate">
               {userName || '…'}
             </span>
           </Link>
