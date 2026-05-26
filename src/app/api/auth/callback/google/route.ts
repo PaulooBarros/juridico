@@ -26,6 +26,7 @@ export async function GET(request: Request) {
     const { data: membro } = await supabase
       .from('membros')
       .select('escritorio_id')
+      .eq('user_id', userId)
       .limit(1)
       .maybeSingle()
 

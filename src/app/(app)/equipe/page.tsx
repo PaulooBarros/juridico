@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { EmptyState } from '@/features/shared/empty-state'
 import { formatDate, formatRole, getInitials } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import {
   listarMembros, listarConvitesPendentes, criarConvite, revogarConvite, removerMembro,
   type Membro, type ConvitePendente, type ConviteRole,
@@ -39,16 +39,17 @@ export default function EquipePage() {
   async function carregar() {
     setLoading(true)
     try {
-      const [ms, cs, { data: { user } }] = await Promise.all([
+      const [ms, cs, session] = await Promise.all([
         listarMembros(),
         listarConvitesPendentes(),
-        createClient().auth.getUser(),
+        authClient.getSession(),
       ])
       setMembros(ms)
       setConvites(cs)
-      if (user) {
-        setMeuId(user.id)
-        setMeuRole(ms.find(m => m.user_id === user.id)?.role ?? '')
+      const userId = session.data?.user?.id
+      if (userId) {
+        setMeuId(userId)
+        setMeuRole(ms.find(m => m.user_id === userId)?.role ?? '')
       }
     } finally {
       setLoading(false)

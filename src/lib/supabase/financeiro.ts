@@ -1,4 +1,5 @@
 import { createClient } from './client'
+import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
 export type TransacaoTipo   = 'honorario' | 'despesa' | 'reembolso' | 'adiantamento'
@@ -19,21 +20,20 @@ export type Transacao = {
   vencimento:    string | null
   pago_em:       string | null
   notas:         string | null
-  // joined
   caso_titulo:   string | null
   cliente_nome:  string | null
 }
 
 export type TransacaoInput = {
-  descricao:  string
-  tipo:       TransacaoTipo
-  status:     TransacaoStatus
-  valor:      number
+  descricao:   string
+  tipo:        TransacaoTipo
+  status:      TransacaoStatus
+  valor:       number
   vencimento?: string
-  pago_em?:   string
-  caso_id?:   string
+  pago_em?:    string
+  caso_id?:    string
   cliente_id?: string
-  notas?:     string
+  notas?:      string
 }
 
 export const TIPO_LABEL: Record<TransacaoTipo, string> = {
@@ -51,10 +51,13 @@ export const STATUS_LABEL: Record<TransacaoStatus, string> = {
 }
 
 export async function listarTransacoes(): Promise<Transacao[]> {
+  const escritorioId = await getMeuEscritorioId()
+  if (!escritorioId) return []
   const supabase = createClient()
   const { data } = await supabase
     .from('transacoes')
     .select('*, casos(titulo), clientes(name)')
+    .eq('escritorio_id', escritorioId)
     .order('created_at', { ascending: false })
   return ((data ?? []) as any[]).map(t => ({
     ...t,
@@ -66,16 +69,16 @@ export async function listarTransacoes(): Promise<Transacao[]> {
 }
 
 export async function criarTransacao(input: TransacaoInput): Promise<Transacao> {
-  const supabase = createClient()
-  const [escritorioId, { data: { user } }] = await Promise.all([
+  const [userId, escritorioId] = await Promise.all([
+    getSessionUserId(),
     getMeuEscritorioId(),
-    supabase.auth.getUser(),
   ])
-  if (!escritorioId || !user) throw new Error('Não autenticado')
+  if (!userId || !escritorioId) throw new Error('Não autenticado')
 
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('transacoes')
-    .insert({ ...input, escritorio_id: escritorioId, created_by: user.id })
+    .insert({ ...input, escritorio_id: escritorioId, created_by: userId })
     .select('*, casos(titulo), clientes(name)')
     .single()
   if (error) throw error

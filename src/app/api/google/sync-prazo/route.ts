@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { getCalendarClient } from '@/lib/google/calendar'
 
 /** Cria ou atualiza evento no Google Calendar para o prazo. */
 export async function POST(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session?.user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  const user = session.user
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { prazoId } = await req.json()
 
@@ -60,9 +62,10 @@ export async function POST(req: NextRequest) {
 
 /** Remove o evento do Google Calendar (antes de deletar o prazo). */
 export async function DELETE(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session?.user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  const user = session.user
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const { prazoId } = await req.json()
 

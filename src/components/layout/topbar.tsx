@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
 interface TopbarProps {
@@ -22,9 +22,9 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: 
   const [userName, setUserName] = useState('')
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      const meta = data.user?.user_metadata
-      setUserName(meta?.nome_profissional || meta?.full_name || data.user?.email || '')
+    authClient.getSession().then(({ data }) => {
+      const user = data?.user as any
+      setUserName(user?.nome_profissional || user?.name || user?.email || '')
     })
   }, [])
 

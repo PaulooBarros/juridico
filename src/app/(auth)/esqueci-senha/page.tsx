@@ -4,8 +4,6 @@ import Link from 'next/link'
 import { ArrowLeft, MailCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
-
 type Step = 'email' | 'enviado'
 
 export default function EsqueciSenhaPage() {
@@ -19,12 +17,14 @@ export default function EsqueciSenhaPage() {
     setErro('')
     setLoading(true)
 
-    const supabase = createClient()
-    const redirectTo = `${window.location.origin}/api/auth/callback?next=/redefinir-senha`
+    const redirectTo = `${window.location.origin}/redefinir-senha`
+    const res = await fetch('/api/auth/forget-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, redirectTo }),
+    })
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
-
-    if (error) {
+    if (!res.ok) {
       setErro('Não foi possível enviar o e-mail. Verifique o endereço e tente novamente.')
       setLoading(false)
       return

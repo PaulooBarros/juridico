@@ -1,4 +1,5 @@
 import { createClient } from './client'
+import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
 export type PrazoTipo   = 'prazo' | 'audiencia' | 'reuniao' | 'protocolo' | 'recurso' | 'outro'
@@ -40,10 +41,13 @@ export const PRAZO_TIPO_LABEL: Record<PrazoTipo, string> = {
 export type PrazoComCaso = Prazo & { caso_titulo: string | null }
 
 export async function listarTodosPrazos(): Promise<PrazoComCaso[]> {
+  const escritorioId = await getMeuEscritorioId()
+  if (!escritorioId) return []
   const supabase = createClient()
   const { data } = await supabase
     .from('prazos')
     .select('*, casos(titulo)')
+    .eq('escritorio_id', escritorioId)
     .order('data_prazo', { ascending: true })
   return ((data ?? []) as any[]).map(p => ({
     ...p,
@@ -63,16 +67,16 @@ export async function listarPrazosDoCaso(casoId: string): Promise<Prazo[]> {
 }
 
 export async function criarPrazo(input: PrazoInput): Promise<Prazo> {
-  const supabase = createClient()
-  const [escritorioId, { data: { user } }] = await Promise.all([
+  const [userId, escritorioId] = await Promise.all([
+    getSessionUserId(),
     getMeuEscritorioId(),
-    supabase.auth.getUser(),
   ])
-  if (!escritorioId || !user) throw new Error('Não autenticado')
+  if (!userId || !escritorioId) throw new Error('Não autenticado')
 
+  const supabase = createClient()
   const { data, error } = await supabase
     .from('prazos')
-    .insert({ ...input, escritorio_id: escritorioId, created_by: user.id })
+    .insert({ ...input, escritorio_id: escritorioId, created_by: userId })
     .select()
     .single()
   if (error) throw error

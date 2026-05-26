@@ -1,7 +1,8 @@
 import { createClient } from './client'
+import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
-export type MembroRole = 'owner' | 'admin' | 'lawyer' | 'assistant'
+export type MembroRole  = 'owner' | 'admin' | 'lawyer' | 'assistant'
 export type ConviteRole = 'admin' | 'lawyer' | 'assistant'
 
 export type Membro = {
@@ -23,17 +24,22 @@ export type ConvitePendente = {
 }
 
 export async function listarMembros(): Promise<Membro[]> {
+  const userId = await getSessionUserId()
+  if (!userId) return []
   const supabase = createClient()
-  const { data, error } = await supabase.rpc('listar_membros_escritorio')
+  const { data, error } = await supabase.rpc('listar_membros_escritorio', { p_user_id: userId })
   if (error) throw error
   return (data as Membro[]) ?? []
 }
 
 export async function listarConvitesPendentes(): Promise<ConvitePendente[]> {
+  const escritorioId = await getMeuEscritorioId()
+  if (!escritorioId) return []
   const supabase = createClient()
   const { data, error } = await supabase
     .from('convites')
     .select('id, email, role, token, expires_at, created_at')
+    .eq('escritorio_id', escritorioId)
     .is('accepted_at', null)
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
@@ -42,17 +48,16 @@ export async function listarConvitesPendentes(): Promise<ConvitePendente[]> {
 }
 
 export async function criarConvite(email: string, role: ConviteRole): Promise<ConvitePendente> {
+  const [userId, escritorioId] = await Promise.all([
+    getSessionUserId(),
+    getMeuEscritorioId(),
+  ])
+  if (!userId || !escritorioId) throw new Error('Não autenticado')
+
   const supabase = createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Não autenticado')
-
-  const escritorio_id = await getMeuEscritorioId()
-  if (!escritorio_id) throw new Error('Nenhum escritório encontrado')
-
   const { data, error } = await supabase
     .from('convites')
-    .insert({ escritorio_id, created_by: user.id, email, role })
+    .insert({ escritorio_id: escritorioId, created_by: userId, email, role })
     .select('id, email, role, token, expires_at, created_at')
     .single()
 
@@ -67,7 +72,12 @@ export async function revogarConvite(id: string): Promise<void> {
 }
 
 export async function removerMembro(userId: string): Promise<void> {
+  const callerId = await getSessionUserId()
+  if (!callerId) throw new Error('Não autenticado')
   const supabase = createClient()
-  const { error } = await supabase.rpc('remover_membro', { p_user_id: userId })
+  const { error } = await supabase.rpc('remover_membro', {
+    p_caller_id: callerId,
+    p_user_id:   userId,
+  })
   if (error) throw error
 }

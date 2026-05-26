@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
+import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
 import { createClient } from '@/lib/supabase/client'
 import {
   LayoutDashboard, Users, Briefcase, Calendar, FileText, FileStack,
@@ -51,36 +53,29 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   const [officePlan, setOfficePlan] = useState('')
 
   useEffect(() => {
-    const supabase = createClient()
-
-    supabase.auth.getUser().then(({ data }) => {
-      const meta = data.user?.user_metadata
-      setUserName(meta?.nome_profissional || meta?.full_name || data.user?.email || '')
+    authClient.getSession().then(({ data }) => {
+      const user = data?.user as any
+      setUserName(user?.nome_profissional || user?.name || user?.email || '')
     })
 
-    supabase
-      .from('membros')
-      .select('escritorio_id')
-      .limit(1)
-      .maybeSingle()
-      .then(({ data: membro }) => {
-        if (!membro?.escritorio_id) return
-        supabase
-          .from('escritorios')
-          .select('nome, plano')
-          .eq('id', membro.escritorio_id)
-          .single()
-          .then(({ data: esc }) => {
-            if (esc) {
-              setOfficeName(esc.nome)
-              setOfficePlan(esc.plano ?? 'starter')
-            }
-          })
-      })
+    getMeuEscritorioId().then(escritorioId => {
+      if (!escritorioId) return
+      createClient()
+        .from('escritorios')
+        .select('nome, plano')
+        .eq('id', escritorioId)
+        .single()
+        .then(({ data: esc }) => {
+          if (esc) {
+            setOfficeName(esc.nome)
+            setOfficePlan(esc.plano ?? 'starter')
+          }
+        })
+    })
   }, [])
 
   async function handleLogout() {
-    await createClient().auth.signOut()
+    await authClient.signOut()
     router.push('/login')
     router.refresh()
   }
