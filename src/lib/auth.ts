@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import { sendPasswordResetEmail } from "./email";
 
 function buildPool() {
-  const raw = process.env.NEXT_PRIVATE_SUPABASE_CONNECTIONSTRING?.trim() ?? "";
+  const raw = process.env.DATABASE_URL?.trim() ?? "";
   try {
     // new URL() misparses passwords containing [ or ] (treats as IPv6 delimiters).
     // Parse manually: split on last @ to separate userinfo from host.
