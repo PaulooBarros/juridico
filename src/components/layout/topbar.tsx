@@ -20,8 +20,10 @@ interface TopbarProps {
 export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: TopbarProps) {
   const { theme, setTheme } = useTheme()
   const [userName, setUserName] = useState('')
+  const [mounted, setMounted]   = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     authClient.getSession().then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
@@ -101,7 +103,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: 
             className="w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             aria-label="Alternar tema"
           >
-            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+            {mounted && (theme === 'light' ? <Moon size={15} /> : <Sun size={15} />)}
           </button>
 
           {/* Separator */}
