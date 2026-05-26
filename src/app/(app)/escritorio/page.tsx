@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorio, atualizarEscritorio, type Escritorio } from '@/lib/supabase/escritorio'
 import { listarMembros, type Membro } from '@/lib/supabase/equipe'
 import { formatRole, getInitials } from '@/lib/utils'
@@ -45,8 +46,8 @@ export default function EscritorioPage() {
   useEffect(() => {
     async function carregar() {
       const supabaseClient = createClient()
-      const { data: { user } } = await supabaseClient.auth.getUser()
-      setMeuId(user?.id ?? null)
+      const session = await authClient.getSession()
+      setMeuId(session.data?.user?.id ?? null)
       const [esc, ms] = await Promise.all([getMeuEscritorio(), listarMembros()])
       if (esc) {
         setEscritorio(esc)

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
 
 export default function LoginPage() {
@@ -29,8 +29,7 @@ function LoginContent() {
     setErro('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
+    const { error } = await authClient.signIn.email({ email, password: senha })
 
     if (error) {
       setErro('E-mail ou senha incorretos.')
@@ -38,14 +37,12 @@ function LoginContent() {
       return
     }
 
-    // Se veio com ?next= (ex: fluxo de convite), respeita o destino
     if (nextParam) {
       router.push(nextParam)
       router.refresh()
       return
     }
 
-    // Sem ?next=: decide pelo escritório do usuário
     const escritorioId = await getMeuEscritorioId()
     router.push(escritorioId ? '/dashboard' : '/gateway')
     router.refresh()
@@ -129,21 +126,6 @@ function LoginContent() {
               {loading ? 'Entrando…' : 'Entrar'}
             </button>
           </form>
-
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-[11px] text-muted-foreground">ou</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <button className="w-full h-9 border border-border rounded-[5px] text-[13px] font-medium bg-card hover:bg-accent transition-colors">
-              Continuar com Google
-            </button>
-            <button className="w-full h-9 border border-border rounded-[5px] text-[13px] font-medium bg-card hover:bg-accent transition-colors">
-              Entrar com certificado ICP-Brasil
-            </button>
-          </div>
 
           <p className="text-center text-[13px] text-muted-foreground mt-8">
             Não tem conta?{' '}

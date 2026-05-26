@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, CalendarDays, CheckCircle2, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { authClient, getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorio, type Escritorio } from '@/lib/supabase/escritorio'
 
 const PLAN_LABEL: Record<string, string> = {
@@ -22,6 +23,7 @@ export default function ConfiguracoesPage() {
   })
 
   // Segurança
+  const [senhaAtual,     setSenhaAtual]     = useState('')
   const [novaSenha,      setNovaSenha]      = useState('')
   const [confirmSenha,   setConfirmSenha]   = useState('')
   const [savingPass,     setSavingPass]     = useState(false)
@@ -83,13 +85,12 @@ export default function ConfiguracoesPage() {
     }
 
     async function verificarGoogle() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoadingGoogle(false); return }
-      const { data } = await supabase
+      const userId = await getSessionUserId()
+      if (!userId) { setLoadingGoogle(false); return }
+      const { data } = await createClient()
         .from('google_calendar_tokens')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle()
       setGoogleConectado(!!data)
       setLoadingGoogle(false)
@@ -119,9 +120,9 @@ export default function ConfiguracoesPage() {
     if (novaSenha !== confirmSenha) { setErroPass('As senhas não coincidem.'); return }
     setSavingPass(true)
     try {
-      const { error } = await createClient().auth.updateUser({ password: novaSenha })
+      const { error } = await authClient.changePassword({ newPassword: novaSenha, currentPassword: senhaAtual })
       if (error) throw error
-      setNovaSenha(''); setConfirmSenha('')
+      setSenhaAtual(''); setNovaSenha(''); setConfirmSenha('')
       setSucessoPass(true)
       setTimeout(() => setSucessoPass(false), 3000)
     } catch (e: any) {
@@ -207,6 +208,11 @@ export default function ConfiguracoesPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleAlterarSenha} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[12px] text-muted-foreground">Senha atual</Label>
+                  <Input type="password" value={senhaAtual} onChange={e => setSenhaAtual(e.target.value)}
+                    placeholder="••••••••" className="h-9 text-[13px]" />
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-[12px] text-muted-foreground">Nova senha</Label>
                   <Input type="password" value={novaSenha} onChange={e => setNovaSenha(e.target.value)}

@@ -1,15 +1,26 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
 export default function RedefinirSenhaPage() {
+  return (
+    <Suspense>
+      <RedefinirSenhaContent />
+    </Suspense>
+  )
+}
+
+function RedefinirSenhaContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token') ?? ''
+
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [erro, setErro] = useState('')
@@ -25,8 +36,7 @@ export default function RedefinirSenhaPage() {
     setErro('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password: senha })
+    const { error } = await authClient.resetPassword({ newPassword: senha, token })
 
     if (error) {
       setErro('Não foi possível redefinir a senha. O link pode ter expirado.')

@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
 import { createClient } from '@/lib/supabase/client'
 
 type ConviteInfo = {
@@ -32,7 +33,8 @@ function ConviteContent() {
   const token = params.get('token') ?? ''
 
   const [convite, setConvite] = useState<ConviteInfo | null>(null)
-  const [user, setUser] = useState<{ id: string } | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'ok' | 'aceito' | 'erro'>('loading')
   const [erroMsg, setErroMsg] = useState('')
   const [aceitando, setAceitando] = useState(false)
@@ -40,12 +42,10 @@ function ConviteContent() {
   useEffect(() => {
     if (!token) { setStatus('erro'); setErroMsg('Token de convite não encontrado.'); return }
 
-    const supabase = createClient()
-
     async function init() {
-      const [{ data: { user } }, { data: info, error }] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.rpc('get_convite_by_token', { p_token: token }),
+      const [session, { data: info, error }] = await Promise.all([
+        authClient.getSession(),
+        createClient().rpc('get_convite_by_token', { p_token: token }),
       ])
 
       if (error || !info) { setStatus('erro'); setErroMsg('Convite não encontrado.'); return }
@@ -53,7 +53,8 @@ function ConviteContent() {
       if (new Date(info.expires_at) < new Date()) { setStatus('erro'); setErroMsg('Este convite expirou.'); return }
 
       setConvite(info as ConviteInfo)
-      setUser(user)
+      setUserId(session.data?.user?.id ?? null)
+      setUserEmail(session.data?.user?.email ?? null)
       setStatus('ok')
     }
 
@@ -61,10 +62,10 @@ function ConviteContent() {
   }, [token])
 
   async function handleAceitar() {
-    if (!user) return
+    if (!userId) return
     setAceitando(true)
     const supabase = createClient()
-    const { error } = await supabase.rpc('aceitar_convite', { p_token: token })
+    const { error } = await supabase.rpc('aceitar_convite', { p_user_id: userId, p_token: token })
     if (error) {
       setErroMsg(error.message)
       setAceitando(false)
@@ -123,14 +124,14 @@ function ConviteContent() {
         {convite!.email ? ` · enviado para ${convite!.email}` : ''}
       </p>
 
-      {user ? (
+      {userId ? (
         <>
           <button onClick={handleAceitar} disabled={aceitando}
             className="w-full h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 mb-3">
             {aceitando ? 'Entrando…' : 'Aceitar convite e entrar'}
           </button>
           <p className="text-[12px] text-muted-foreground">
-            Entrando como <strong className="text-foreground">{(user as any).email}</strong>.{' '}
+            Entrando como <strong className="text-foreground">{userEmail}</strong>.{' '}
             <Link href="/login" className="text-primary hover:underline">Trocar de conta</Link>
           </p>
         </>

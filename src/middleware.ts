@@ -1,8 +1,20 @@
-import { type NextRequest } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import { type NextRequest, NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  return updateSession(request)
+const PROTECTED = /^\/(dashboard|casos|clientes|documentos|financeiro|equipe|calendario|configuracoes|modelos|notificacoes|perfil|escritorio|planos)/
+
+export function middleware(request: NextRequest) {
+  if (PROTECTED.test(request.nextUrl.pathname)) {
+    // Better Auth stores the session in this cookie.
+    // Full validation happens inside each protected route/API handler.
+    const hasSession = request.cookies.has('better-auth.session_token')
+    if (!hasSession) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {

@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 
+// Este callback era usado pelo Supabase Auth (magic links, reset de senha).
+// Após migração para Better Auth, o fluxo de reset de senha usa /redefinir-senha?token=...
+// e é gerenciado diretamente pelo Better Auth em /api/auth/[...all].
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
-
-  if (code) {
-    const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
-  }
-
-  return NextResponse.redirect(`${origin}/login?erro=link-invalido`)
+  const { origin } = new URL(request.url)
+  return NextResponse.redirect(`${origin}/login`)
 }

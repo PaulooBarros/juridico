@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 
 const BENEFITS = [
   '14 dias grátis em todos os recursos',
@@ -41,19 +41,17 @@ function CadastroContent() {
     setErro('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { error } = await (authClient.signUp.email as any)({
+      name:     nome,
       email,
       password: senha,
-      options: {
-        data: { full_name: nome },
-      },
     })
 
     if (error) {
-      setErro(error.message === 'User already registered'
-        ? 'Este e-mail já está cadastrado.'
-        : 'Não foi possível criar a conta. Tente novamente.'
+      setErro(
+        error.message?.includes('already') || error.message?.includes('email')
+          ? 'Este e-mail já está cadastrado.'
+          : 'Não foi possível criar a conta. Tente novamente.'
       )
       setLoading(false)
       return

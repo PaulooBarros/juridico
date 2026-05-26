@@ -1,4 +1,5 @@
 import { createClient } from './client'
+import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
 export type ClienteStatus = 'active' | 'inactive' | 'prospect'
@@ -34,10 +35,13 @@ export type ClienteInput = {
 }
 
 export async function listarClientes(): Promise<Cliente[]> {
+  const escritorioId = await getMeuEscritorioId()
+  if (!escritorioId) return []
   const supabase = createClient()
   const { data, error } = await supabase
     .from('clientes')
     .select('*')
+    .eq('escritorio_id', escritorioId)
     .order('name')
   if (error) throw error
   return (data ?? []) as Cliente[]
@@ -55,29 +59,28 @@ export async function getCliente(id: string): Promise<Cliente | null> {
 }
 
 export async function criarCliente(input: ClienteInput): Promise<Cliente> {
+  const [userId, escritorioId] = await Promise.all([
+    getSessionUserId(),
+    getMeuEscritorioId(),
+  ])
+  if (!userId || !escritorioId) throw new Error('Não autenticado')
+
   const supabase = createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Não autenticado')
-
-  const escritorio_id = await getMeuEscritorioId()
-  if (!escritorio_id) throw new Error('Nenhum escritório encontrado')
-
   const { data, error } = await supabase
     .from('clientes')
     .insert({
-      escritorio_id,
-      created_by: user.id,
-      type:       input.type,
-      name:       input.name,
-      document:   input.document   || null,
-      email:      input.email      || null,
-      phone:      input.phone      || null,
-      address:    input.address    || null,
-      city:       input.city       || null,
-      state:      input.state      || null,
-      status:     input.status     ?? 'active',
-      notes:      input.notes      || null,
+      escritorio_id: escritorioId,
+      created_by:    userId,
+      type:          input.type,
+      name:          input.name,
+      document:      input.document   || null,
+      email:         input.email      || null,
+      phone:         input.phone      || null,
+      address:       input.address    || null,
+      city:          input.city       || null,
+      state:         input.state      || null,
+      status:        input.status     ?? 'active',
+      notes:         input.notes      || null,
     })
     .select()
     .single()
@@ -88,10 +91,7 @@ export async function criarCliente(input: ClienteInput): Promise<Cliente> {
 
 export async function atualizarCliente(id: string, input: Partial<ClienteInput>): Promise<void> {
   const supabase = createClient()
-  const { error } = await supabase
-    .from('clientes')
-    .update(input)
-    .eq('id', id)
+  const { error } = await supabase.from('clientes').update(input).eq('id', id)
   if (error) throw error
 }
 

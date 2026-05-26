@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { getInitials } from '@/lib/utils'
 
 const ALL_SPECIALTIES = [
@@ -34,14 +34,18 @@ export default function PerfilPage() {
   const [erro,     setErro]     = useState('')
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      const meta = data.user?.user_metadata ?? {}
-      setEmail(data.user?.email ?? '')
+    authClient.getSession().then(({ data }) => {
+      const user = data?.user as any
+      setEmail(user?.email ?? '')
       setForm({
-        nome_profissional: meta.nome_profissional ?? meta.full_name ?? '',
-        oab:               meta.oab               ?? '',
-        bio:               meta.bio               ?? '',
-        areas_atuacao:     meta.areas_atuacao      ?? [],
+        nome_profissional: user?.nome_profissional ?? user?.name ?? '',
+        oab:               user?.oab               ?? '',
+        bio:               user?.bio               ?? '',
+        areas_atuacao:     user?.areas_atuacao
+                             ? (typeof user.areas_atuacao === 'string'
+                                ? JSON.parse(user.areas_atuacao)
+                                : user.areas_atuacao)
+                             : [],
       })
       setLoading(false)
     })
@@ -70,14 +74,12 @@ export default function PerfilPage() {
     if (!form.nome_profissional.trim()) { setErro('Nome é obrigatório.'); return }
     setErro(''); setSaving(true)
     try {
-      const { error } = await createClient().auth.updateUser({
-        data: {
-          nome_profissional: form.nome_profissional,
-          oab:               form.oab,
-          bio:               form.bio,
-          areas_atuacao:     form.areas_atuacao,
-        },
-      })
+      const { error } = await authClient.updateUser({
+        nome_profissional: form.nome_profissional,
+        oab:               form.oab,
+        bio:               form.bio,
+        areas_atuacao:     JSON.stringify(form.areas_atuacao),
+      } as any)
       if (error) throw error
       setSucesso(true)
       setTimeout(() => setSucesso(false), 3000)
@@ -222,7 +224,7 @@ export default function PerfilPage() {
                 type="button"
                 onClick={async () => {
                   setSaving(true)
-                  await createClient().auth.updateUser({ data: { areas_atuacao: form.areas_atuacao } })
+                  await authClient.updateUser({ areas_atuacao: JSON.stringify(form.areas_atuacao) } as any)
                   setSaving(false)
                   setSucesso(true)
                   setTimeout(() => setSucesso(false), 2000)

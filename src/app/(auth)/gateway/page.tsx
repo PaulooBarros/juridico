@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Building2, Mail, ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
+import { createClient } from '@/lib/supabase/client'
 
 function extrairToken(input: string): string {
   try {
@@ -24,13 +25,10 @@ export default function GatewayPage() {
 
   useEffect(() => {
     async function init() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const session = await authClient.getSession()
+      const user = session.data?.user
+      if (user?.name) setFirstName(user.name.trim().split(' ')[0])
 
-      const nome = user?.user_metadata?.full_name as string | undefined
-      if (nome) setFirstName(nome.trim().split(' ')[0])
-
-      // Já tem escritório — vai direto para o dashboard
       const escritorioId = await getMeuEscritorioId()
       if (escritorioId) router.replace('/dashboard')
     }

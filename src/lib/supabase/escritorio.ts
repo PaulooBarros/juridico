@@ -1,4 +1,5 @@
 import { createClient } from './client'
+import { authClient, getSessionUserId } from '@/lib/auth-client'
 
 export type ConviteInput = { email: string; role: string }
 
@@ -53,19 +54,29 @@ export type Escritorio = {
 
 export type EscritorioUpdate = Partial<Omit<Escritorio, 'id' | 'created_at' | 'plano'>>
 
-/** Retorna o escritório completo do usuário logado, ou null. */
-export async function getMeuEscritorio(): Promise<Escritorio | null> {
+/** Retorna o escritório_id do usuário logado, ou null. */
+export async function getMeuEscritorioId(): Promise<string | null> {
+  const userId = await getSessionUserId()
+  if (!userId) return null
   const supabase = createClient()
-  const { data: membro } = await supabase
+  const { data } = await supabase
     .from('membros')
     .select('escritorio_id')
+    .eq('user_id', userId)
     .limit(1)
     .maybeSingle()
-  if (!membro?.escritorio_id) return null
+  return data?.escritorio_id ?? null
+}
+
+/** Retorna o escritório completo do usuário logado, ou null. */
+export async function getMeuEscritorio(): Promise<Escritorio | null> {
+  const escritorioId = await getMeuEscritorioId()
+  if (!escritorioId) return null
+  const supabase = createClient()
   const { data } = await supabase
     .from('escritorios')
     .select('*')
-    .eq('id', membro.escritorio_id)
+    .eq('id', escritorioId)
     .single()
   return data as Escritorio | null
 }
@@ -77,24 +88,14 @@ export async function atualizarEscritorio(id: string, input: EscritorioUpdate): 
   if (error) throw error
 }
 
-/** Retorna o escritorio_id do usuário logado, ou null se não tiver nenhum. */
-export async function getMeuEscritorioId(): Promise<string | null> {
-  const supabase = createClient()
-  const { data } = await supabase
-    .from('membros')
-    .select('escritorio_id')
-    .limit(1)
-    .maybeSingle()
-  return data?.escritorio_id ?? null
-}
-
 export async function criarEscritorioCompleto(input: CriarEscritorioInput) {
-  const supabase = createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
+  const session = await authClient.getSession()
+  const user = session.data?.user
   if (!user) throw new Error('Não autenticado')
 
-  // 1. Upload logo (se houver) — Storage bypassa RLS por bucket policy
+  const supabase = createClient()
+
+  // 1. Upload logo (se houver)
   let logo_url = ''
   if (input.logoFile) {
     const ext = input.logoFile.name.split('.').pop()
@@ -108,8 +109,9 @@ export async function criarEscritorioCompleto(input: CriarEscritorioInput) {
     }
   }
 
-  // 2. Criar escritório + membros + convites via RPC (security definer, sem RLS)
+  // 2. Criar escritório + membros + convites via RPC
   const { data, error } = await supabase.rpc('criar_escritorio_completo', {
+    p_user_id:       user.id,
     p_nome:          input.nome,
     p_cnpj:          input.cnpj,
     p_oab_sociedade: input.oab_sociedade,
@@ -127,16 +129,14 @@ export async function criarEscritorioCompleto(input: CriarEscritorioInput) {
 
   const result = data as { escritorio_id: string; convites: ConviteCriado[] }
 
-  // 3. Atualizar perfil do advogado nos metadados do usuário
-  await supabase.auth.updateUser({
-    data: {
-      nome_profissional: input.nomeAdvogado,
-      oab:               input.oabAdvogado,
-      areas_atuacao:     input.areas,
-      bio:               input.bio,
-      escritorio_id:     result.escritorio_id,
-    },
-  })
+  // 3. Atualizar perfil profissional no Better Auth
+  await authClient.updateUser({
+    nome_profissional: input.nomeAdvogado,
+    oab:               input.oabAdvogado,
+    areas_atuacao:     JSON.stringify(input.areas),
+    bio:               input.bio,
+    escritorio_id:     result.escritorio_id,
+  } as any)
 
   return {
     escritorioId:    result.escritorio_id,
