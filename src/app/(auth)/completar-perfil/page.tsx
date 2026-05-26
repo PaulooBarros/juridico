@@ -13,30 +13,31 @@ const AREAS = [
 ]
 
 export default function CompletarPerfilPage() {
-  const router = useRouter()
-  const [loading, setLoading]   = useState(true)
-  const [saving, setSaving]     = useState(false)
-  const [oab, setOab]           = useState('')
-  const [areas, setAreas]       = useState<string[]>([])
-  const [erro, setErro]         = useState('')
+  const router  = useRouter()
+  const { data: session, isPending } = authClient.useSession()
+
+  const [saving, setSaving] = useState(false)
+  const [oab,    setOab]    = useState('')
+  const [areas,  setAreas]  = useState<string[]>([])
+  const [erro,   setErro]   = useState('')
+
+  const user = session?.user as any
 
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
-      if (!data?.session) {
-        router.replace('/login')
-        return
-      }
-      const user = data.user as any
-      // Already completed profile — redirect to correct destination
-      if (user?.oab) {
-        getMeuEscritorioId().then(id => {
-          router.replace(id ? '/dashboard' : '/gateway')
-        })
-        return
-      }
-      setLoading(false)
-    })
-  }, [router])
+    if (isPending) return
+
+    if (!session) {
+      router.replace('/login')
+      return
+    }
+
+    // Perfil já completo — redireciona
+    if (user?.oab) {
+      getMeuEscritorioId().then(id => {
+        router.replace(id ? '/dashboard' : '/gateway')
+      })
+    }
+  }, [isPending, session, user?.oab, router])
 
   function toggleArea(area: string) {
     setAreas(prev =>
@@ -50,10 +51,10 @@ export default function CompletarPerfilPage() {
     setErro('')
     setSaving(true)
 
-    const { error } = await (authClient as any).updateUser({
+    const { error } = await authClient.updateUser({
       oab:           oab.trim(),
       areas_atuacao: areas.join(','),
-    })
+    } as any)
 
     if (error) {
       setErro('Não foi possível salvar. Tente novamente.')
@@ -66,7 +67,8 @@ export default function CompletarPerfilPage() {
     router.refresh()
   }
 
-  if (loading) {
+  // Carregando sessão ou redirecionando
+  if (isPending || !session || user?.oab) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
