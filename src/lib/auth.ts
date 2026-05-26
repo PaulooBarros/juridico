@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
+import { sendPasswordResetEmail } from "./email";
 
 function buildPool() {
   const raw = process.env.NEXT_PRIVATE_SUPABASE_CONNECTIONSTRING?.trim() ?? "";
@@ -40,6 +41,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 10,
+    sendResetPassword: async ({ user, url }) => {
+      await sendPasswordResetEmail(user.email, url);
+    },
   },
   user: {
     additionalFields: {
