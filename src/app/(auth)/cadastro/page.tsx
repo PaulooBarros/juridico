@@ -111,7 +111,7 @@ function CadastroContent() {
           {/* Google OAuth */}
           <button
             type="button"
-            onClick={() => authClient.signIn.social({ provider: 'google', callbackURL: '/completar-perfil' })}
+            onClick={() => authClient.signIn.social({ provider: 'google', callbackURL: `${window.location.origin}/completar-perfil` })}
             className="w-full flex items-center justify-center gap-2.5 h-9 border border-border rounded-[5px] text-[13px] font-medium text-foreground hover:bg-accent transition-colors mb-4"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
