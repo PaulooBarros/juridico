@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const PROTECTED = /^\/(dashboard|casos|clientes|documentos|financeiro|equipe|calendario|configuracoes|modelos|notificacoes|perfil|escritorio|planos)/
+const PROTECTED = /^\/(dashboard|casos|clientes|documentos|financeiro|equipe|calendario|configuracoes|modelos|notificacoes|perfil|escritorio|planos|completar-perfil)/
 
 export function middleware(request: NextRequest) {
   if (PROTECTED.test(request.nextUrl.pathname)) {

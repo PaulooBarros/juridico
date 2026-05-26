@@ -34,85 +34,77 @@ const PILLARS = [
 
 const PLANS = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 'R$ 89',
-    period: '/mês',
-    desc: 'Para advogados solo ou duplas que precisam de controle sem complexidade.',
+    id: 'free',
+    name: 'Free',
+    price: 'R$ 0',
+    period: '',
+    desc: 'Comece agora, sem cartão. Para advogados que querem sair das planilhas de graça.',
     featured: false,
-    cta: 'Começar grátis',
+    cta: 'Criar conta grátis',
     features: [
-      'Até 2 advogados',
-      'Casos ilimitados',
-      'Clientes e contatos',
-      'Prazos & calendário',
-      'Documentos — 5 GB',
-      'Financeiro básico',
-      'App mobile incluído',
+      'Até 2 usuários',
+      'Até 10 clientes',
+      'Até 5 casos ativos',
+      'Agenda jurídica',
+      'Documentos — 500 MB',
     ],
     absent: [
-      'Relatórios avançados',
-      'Integração PJe / eSAJ',
-      'Modelos personalizados',
-      'Suporte prioritário',
+      'Financeiro',
+      'Equipe & permissões',
+      'Modelos de documentos',
+      'Relatórios',
     ],
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    price: 'R$ 189',
+    id: 'start',
+    name: 'Start',
+    price: 'R$ 39',
     period: '/mês',
-    desc: 'Para bancas em crescimento que precisam de eficiência operacional real.',
+    desc: 'Preço agressivo para bancas que estão crescendo e precisam de controle real.',
+    featured: false,
+    cta: 'Começar 14 dias grátis',
+    features: [
+      'Até 5 usuários',
+      'Clientes ilimitados',
+      'Casos ilimitados',
+      'Calendário & tarefas',
+      'Upload de documentos — 2 GB',
+      'Financeiro básico',
+    ],
+    absent: [
+      'Equipe & permissões avançadas',
+      'Modelos de documentos',
+      'Relatórios',
+    ],
+  },
+  {
+    id: 'escritorio',
+    name: 'Escritório',
+    price: 'R$ 79',
+    period: '/mês',
+    desc: 'O plano principal. Operação completa para escritórios que não abrem mão de eficiência.',
     featured: true,
     cta: 'Começar 14 dias grátis',
     features: [
-      'Até 8 advogados',
+      'Até 15 usuários',
+      'Clientes ilimitados',
       'Casos ilimitados',
-      'Clientes e contatos',
-      'Prazos & calendário',
-      'Documentos — 50 GB',
-      'Financeiro completo',
+      'Documentos — 10 GB',
+      'Dashboard operacional',
+      'Equipe & permissões',
+      'Modelos de documentos',
+      'Pipeline de processos',
       'Relatórios avançados',
-      'Integração PJe / eSAJ',
-      'Modelos personalizados',
-      'Suporte prioritário',
-      'App mobile incluído',
-    ],
-    absent: [],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 'Sob consulta',
-    period: '',
-    desc: 'Para escritórios com equipes grandes, múltiplas unidades ou exigências contratuais.',
-    featured: false,
-    cta: 'Falar com especialista',
-    features: [
-      'Advogados ilimitados',
-      'Casos ilimitados',
-      'Clientes e contatos',
-      'Prazos & calendário',
-      'Documentos — ilimitado',
-      'Financeiro completo',
-      'Relatórios avançados',
-      'Integração PJe / eSAJ',
-      'Modelos personalizados',
-      'Onboarding dedicado',
-      'SLA contratual',
-      'SSO / LDAP',
-      'Auditoria de acesso',
-      'Suporte 24 h',
     ],
     absent: [],
   },
 ]
 
 const FAQ = [
-  ['O período de teste é gratuito de verdade?', 'Sim. 14 dias sem cartão de crédito. Você acessa todos os recursos do plano Pro durante o trial e decide depois.'],
-  ['Posso mudar de plano depois?', 'Sim, a qualquer momento. O ajuste é proporcional ao período restante da vigência.'],
+  ['O plano Free é realmente gratuito?', 'Sim, sem cartão e sem prazo de expiração. Você usa o Free para sempre dentro dos limites do plano.'],
+  ['Como funciona o trial nos planos pagos?', '14 dias com acesso completo ao plano escolhido, sem cartão de crédito. Só cobra se você decidir continuar.'],
+  ['Posso mudar de plano depois?', 'Sim, a qualquer momento. O ajuste é proporcional ao período restante da vigência — sem multa.'],
   ['Meus dados ficam seguros?', 'Os dados ficam em data center brasileiro, com criptografia em repouso e em trânsito. Backup diário, retenção de 90 dias. Você pode exportar tudo quando quiser.'],
-  ['O sistema integra com os tribunais?', 'No plano Pro e Enterprise: PJe, eSAJ e Projudi. Novas integrações são liberadas conforme demanda.'],
 ]
 
 export default function LandingPage() {
@@ -120,7 +112,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-foreground">
 
       {/* NAV */}
-      <nav className="sticky top-0 z-10 bg-background border-b border-border px-10 flex items-center justify-between h-[54px]">
+      <nav className="sticky top-0 z-10 bg-background border-b border-border px-4 md:px-10 flex items-center justify-between h-[54px]">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
             V
@@ -139,27 +131,28 @@ export default function LandingPage() {
           <Link href="/login" className="px-3 py-1.5 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent rounded-[5px] transition-colors">
             Entrar
           </Link>
-          <Link href="/cadastro" className="px-3 py-1.5 text-[13px] font-medium bg-primary text-primary-foreground rounded-[5px] hover:bg-primary/90 transition-colors">
-            Começar gratuitamente
+          <Link href="/cadastro" className="px-3 py-1.5 text-[13px] font-medium bg-primary text-primary-foreground rounded-[5px] hover:bg-primary/90 transition-colors whitespace-nowrap">
+            <span className="hidden sm:inline">Começar gratuitamente</span>
+            <span className="sm:hidden">Começar</span>
           </Link>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="dotted-bg border-b border-border px-10 py-24">
+      <section className="dotted-bg border-b border-border px-4 md:px-10 py-16 md:py-24">
         <div className="max-w-[1080px] mx-auto grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-16 items-center">
           <div>
             <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-5">
               — Sistema operacional jurídico
             </p>
-            <h1 className="font-serif text-[52px] leading-[1.05] tracking-[-0.025em] font-medium mb-6">
+            <h1 className="font-serif text-[36px] sm:text-[44px] md:text-[52px] leading-[1.05] tracking-[-0.025em] font-medium mb-6">
               Quando tudo está sob controle,<br />
               a advocacia fica <em className="text-primary">inevitável.</em>
             </h1>
-            <p className="text-[17px] text-muted-foreground leading-[1.55] max-w-[52ch] mb-8">
+            <p className="text-[15px] md:text-[17px] text-muted-foreground leading-[1.55] max-w-[52ch] mb-8">
               O Vetor Jurídico organiza casos, prazos, documentos e o financeiro em uma única superfície. Nada de planilhas paralelas, e-mails perdidos, ou prazos descobertos na véspera.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link href="/cadastro" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-[5px] text-[14px] font-medium hover:bg-primary/90 transition-colors">
                 Criar conta — 14 dias grátis
               </Link>
@@ -214,7 +207,7 @@ export default function LandingPage() {
       </section>
 
       {/* PROBLEMA */}
-      <section className="px-10 py-24 border-b border-border">
+      <section className="px-4 md:px-10 py-16 md:py-24 border-b border-border">
         <div className="max-w-[1080px] mx-auto">
           <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-3">01 — O problema real</p>
           <h2 className="font-serif text-[34px] leading-[1.15] tracking-[-0.02em] font-medium max-w-[20ch] mb-12">
@@ -233,7 +226,7 @@ export default function LandingPage() {
       </section>
 
       {/* PARADIGMA */}
-      <section className="px-10 py-24 border-b border-border">
+      <section className="px-4 md:px-10 py-16 md:py-24 border-b border-border">
         <div className="max-w-[1080px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-16 items-start">
           <div className="lg:sticky lg:top-20">
             <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-3">02 — Mudança de paradigma</p>
@@ -253,7 +246,7 @@ export default function LandingPage() {
       </section>
 
       {/* MÓDULOS */}
-      <section id="modulos" className="px-10 py-24 border-b border-border">
+      <section id="modulos" className="px-4 md:px-10 py-16 md:py-24 border-b border-border">
         <div className="max-w-[1080px] mx-auto">
           <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-3">03 — Seis módulos, uma operação</p>
           <h2 className="font-serif text-[34px] leading-[1.15] tracking-[-0.02em] font-medium max-w-[22ch] mb-12">
@@ -279,7 +272,7 @@ export default function LandingPage() {
       </section>
 
       {/* PILARES */}
-      <section id="pilares" className="px-10 py-24 border-b border-border bg-muted">
+      <section id="pilares" className="px-4 md:px-10 py-16 md:py-24 border-b border-border bg-muted">
         <div className="max-w-[1080px] mx-auto">
           <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-3">04 — Por que confiar</p>
           <h2 className="font-serif text-[34px] leading-[1.15] tracking-[-0.02em] font-medium max-w-[22ch] mb-12">
@@ -298,14 +291,14 @@ export default function LandingPage() {
       </section>
 
       {/* PLANOS */}
-      <section id="planos" className="px-10 py-24 border-b border-border">
+      <section id="planos" className="px-4 md:px-10 py-16 md:py-24 border-b border-border">
         <div className="max-w-[1080px] mx-auto">
           <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-muted-foreground mb-3">05 — Planos</p>
           <h2 className="font-serif text-[34px] leading-[1.15] tracking-[-0.02em] font-medium max-w-[22ch] mb-3">
-            Simples de entender. <em className="text-primary">Fácil de cancelar.</em>
+            Preço justo desde o <em className="text-primary">primeiro cliente.</em>
           </h2>
           <p className="text-[15px] text-muted-foreground mb-12 max-w-[52ch]">
-            14 dias grátis em qualquer plano. Sem cartão de crédito. Migração assistida inclusa.
+            Comece grátis para sempre. Nos planos pagos, 14 dias de trial sem cartão de crédito.
           </p>
 
           {/* Cards */}
@@ -347,7 +340,7 @@ export default function LandingPage() {
                 </div>
 
                 <Link
-                  href={plan.id === 'enterprise' ? '/contato' : '/cadastro'}
+                  href="/cadastro"
                   className={[
                     'w-full flex items-center justify-center h-9 rounded-[5px] text-[13px] font-medium transition-colors mb-6',
                     plan.featured
@@ -394,16 +387,16 @@ export default function LandingPage() {
       </section>
 
       {/* CTA FINAL */}
-      <section className="px-10 py-32 border-b border-border text-center">
+      <section className="px-4 md:px-10 py-20 md:py-32 border-b border-border text-center">
         <div className="max-w-[760px] mx-auto">
-          <h2 className="font-serif text-[48px] leading-[1.05] tracking-[-0.025em] font-medium mb-6">
+          <h2 className="font-serif text-[34px] sm:text-[42px] md:text-[48px] leading-[1.05] tracking-[-0.025em] font-medium mb-6">
             Quando tudo está sob controle,<br />
             a advocacia fica <em className="text-primary">inevitável.</em>
           </h2>
-          <p className="text-[16px] text-muted-foreground mb-8">
+          <p className="text-[15px] md:text-[16px] text-muted-foreground mb-8">
             Comece grátis. Sem cartão. Cancele quando quiser.
           </p>
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <Link href="/cadastro" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-[5px] text-[14px] font-medium hover:bg-primary/90 transition-colors">
               Criar minha conta
             </Link>
@@ -415,7 +408,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="px-10 py-12">
+      <footer className="px-4 md:px-10 py-12">
         <div className="max-w-[1080px] mx-auto flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 flex-wrap">
           <div>
             <div className="flex items-center gap-2.5 mb-4">

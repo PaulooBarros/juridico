@@ -10,25 +10,33 @@ export async function GET(request: Request) {
   const redirectBase = `${origin}/configuracoes`
 
   if (!code || !userId) {
+    console.error('[google-callback] missing code or userId', { code: !!code, userId: !!userId })
     return NextResponse.redirect(`${redirectBase}?tab=integracoes&erro=google-auth-falhou`)
   }
 
   try {
     const tokens = await exchangeCodeForTokens(code)
+    console.log('[google-callback] tokens recebidos:', {
+      hasAccess:  !!tokens.access_token,
+      hasRefresh: !!tokens.refresh_token,
+      expiry:     tokens.expiry_date,
+    })
 
     if (!tokens.access_token || !tokens.refresh_token) {
+      console.error('[google-callback] token inválido — sem access ou refresh token')
       return NextResponse.redirect(`${redirectBase}?tab=integracoes&erro=token-invalido`)
     }
 
-    // Usa o server client (lê cookies do browser) — nunca o browser client
     const supabase = createClient()
 
-    const { data: membro } = await supabase
+    const { data: membro, error: membroError } = await supabase
       .from('membros')
       .select('escritorio_id')
       .eq('user_id', userId)
       .limit(1)
       .maybeSingle()
+
+    console.log('[google-callback] membro lookup:', { userId, membro, membroError })
 
     const escritorioId = membro?.escritorio_id ?? null
 

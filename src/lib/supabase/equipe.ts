@@ -2,6 +2,7 @@ import { createClient } from './client'
 import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
+
 export type MembroRole  = 'owner' | 'admin' | 'lawyer' | 'assistant'
 export type ConviteRole = 'admin' | 'lawyer' | 'assistant'
 
@@ -48,21 +49,16 @@ export async function listarConvitesPendentes(): Promise<ConvitePendente[]> {
 }
 
 export async function criarConvite(email: string, role: ConviteRole): Promise<ConvitePendente> {
-  const [userId, escritorioId] = await Promise.all([
-    getSessionUserId(),
-    getMeuEscritorioId(),
-  ])
-  if (!userId || !escritorioId) throw new Error('Não autenticado')
-
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('convites')
-    .insert({ escritorio_id: escritorioId, created_by: userId, email, role })
-    .select('id, email, role, token, expires_at, created_at')
-    .single()
-
-  if (error) throw error
-  return data as ConvitePendente
+  const res = await fetch('/api/convite', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ email, role }),
+  })
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: 'Erro ao criar convite' }))
+    throw new Error(error ?? 'Erro ao criar convite')
+  }
+  return res.json()
 }
 
 export async function revogarConvite(id: string): Promise<void> {

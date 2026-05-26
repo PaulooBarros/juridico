@@ -79,7 +79,11 @@ export default function ConfiguracoesPage() {
     }
 
     if (erro) {
-      setGoogleMensagem('Erro ao conectar com o Google. Tente novamente.')
+      setGoogleMensagem(
+        erro === 'sem-escritorio'
+          ? 'Configure seu escritório antes de conectar o Google Calendar.'
+          : 'Erro ao conectar com o Google. Tente novamente.'
+      )
       setLoadingGoogle(false)
       window.history.replaceState({}, '', '/configuracoes?tab=integracoes')
     }
@@ -384,9 +388,14 @@ export default function ConfiguracoesPage() {
                   </div>
 
                   {googleMensagem && (
-                    <p className={`text-[12px] ${googleMensagem.includes('sucesso') || googleMensagem.includes('desconectado') ? 'text-emerald-600' : 'text-destructive'}`}>
-                      {googleMensagem}
-                    </p>
+                    <div className={`text-[12px] ${googleMensagem.includes('sucesso') || googleMensagem.includes('desconectado') ? 'text-emerald-600' : 'text-destructive'}`}>
+                      <p>{googleMensagem}</p>
+                      {googleMensagem.includes('escritório') && (
+                        <Link href="/gateway" className="underline mt-1 inline-block">
+                          Configurar escritório →
+                        </Link>
+                      )}
+                    </div>
                   )}
 
                   {googleConectado && (

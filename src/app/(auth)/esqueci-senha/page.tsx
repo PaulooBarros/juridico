@@ -18,7 +18,7 @@ export default function EsqueciSenhaPage() {
     setLoading(true)
 
     const redirectTo = `${window.location.origin}/redefinir-senha`
-    const res = await fetch('/api/auth/forget-password', {
+    const res = await fetch('/api/auth/request-password-reset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, redirectTo }),
