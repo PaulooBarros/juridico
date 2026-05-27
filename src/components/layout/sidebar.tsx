@@ -123,15 +123,16 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         >
           {isCollapsed ? (
             <div className="hidden lg:flex w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground items-center justify-center font-serif italic font-semibold text-[13px]">
-              V
+              L
             </div>
-          ) : null}
-          <img
-            src="/vetor_juridico_opcao4.svg"
-            alt="Vetor Jurídico"
-            className={cn('w-full object-contain', isCollapsed && 'lg:hidden')}
-            style={{ height: 64, backgroundColor: '#1A1714' }}
-          />
+          ) : (
+            <div className="flex items-center gap-2.5 px-4 py-4">
+              <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px] shrink-0">
+                L
+              </div>
+              <span className="font-serif font-medium text-[16px] tracking-[-0.01em]">Leea</span>
+            </div>
+          )}
         </Link>
 
         {/* Office selector */}

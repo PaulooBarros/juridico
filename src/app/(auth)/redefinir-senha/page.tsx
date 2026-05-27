@@ -55,11 +55,9 @@ function RedefinirSenhaContent() {
       <div className="hidden lg:flex flex-col justify-between bg-muted border-r border-border px-12 py-12">
         <div className="flex items-center gap-2.5">
           <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
-            V
+            L
           </div>
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">
-            Vetor <em className="text-primary not-italic">Jurídico</em>
-          </span>
+          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">Leea</span>
         </div>
 
         <div>
@@ -67,7 +65,7 @@ function RedefinirSenhaContent() {
             &ldquo;Quando tudo está sob controle, a advocacia fica{' '}
             <em className="text-primary">inevitável.</em>&rdquo;
           </p>
-          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mt-6">— Vetor Jurídico</p>
+          <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mt-6">— Leea</p>
         </div>
 
         <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · São Paulo, Brasil</p>

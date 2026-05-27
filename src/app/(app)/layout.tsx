@@ -35,7 +35,7 @@ function getPageMeta(pathname: string) {
   if (pathname.startsWith('/clientes/'))  return { title: 'Detalhe do Cliente',  breadcrumb: [{ label: 'Clientes',   href: '/clientes' }] }
   if (pathname.startsWith('/casos/'))     return { title: 'Detalhe do Caso',     breadcrumb: [{ label: 'Casos',      href: '/casos' }] }
   if (pathname.startsWith('/documentos/'))return { title: 'Documento',           breadcrumb: [{ label: 'Documentos', href: '/documentos' }] }
-  return { title: 'Vetor Jurídico' }
+  return { title: 'Leea' }
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
