@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createAuthClient } from './client'
 import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
@@ -37,7 +37,7 @@ export type ClienteInput = {
 export async function listarClientes(): Promise<Cliente[]> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return []
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('clientes')
     .select('*')
@@ -48,7 +48,7 @@ export async function listarClientes(): Promise<Cliente[]> {
 }
 
 export async function getCliente(id: string): Promise<Cliente | null> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('clientes')
     .select('*')
@@ -65,7 +65,7 @@ export async function criarCliente(input: ClienteInput): Promise<Cliente> {
   ])
   if (!userId || !escritorioId) throw new Error('Não autenticado')
 
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('clientes')
     .insert({
@@ -90,13 +90,13 @@ export async function criarCliente(input: ClienteInput): Promise<Cliente> {
 }
 
 export async function atualizarCliente(id: string, input: Partial<ClienteInput>): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('clientes').update(input).eq('id', id)
   if (error) throw error
 }
 
 export async function deletarCliente(id: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('clientes').delete().eq('id', id)
   if (error) throw error
 }

@@ -4,11 +4,11 @@ import { Mail, Phone, MapPin, Building2, User, FileText, Briefcase } from 'lucid
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ClientStatusBadge } from '@/features/shared/status-badge'
 import { formatDocument, formatDate } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/server'
+import { createServerAuthClient } from '@/lib/supabase/server'
 import { ClienteActions } from './cliente-actions'
 
 export default async function ClienteDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createServerAuthClient()
 
   const { data: cliente, error } = await supabase
     .from('clientes')

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const userId = session.user.id
-  const supabase = createClient()
+  const supabase = createClient(userId)
 
   const { data: row } = await supabase
     .from('google_calendar_tokens')

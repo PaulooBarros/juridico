@@ -43,7 +43,7 @@ export default function PerfilPage() {
         bio:               user?.bio               ?? '',
         areas_atuacao:     user?.areas_atuacao
                              ? (typeof user.areas_atuacao === 'string'
-                                ? JSON.parse(user.areas_atuacao)
+                                ? (() => { try { return JSON.parse(user.areas_atuacao) } catch { return user.areas_atuacao.split(',').map((s: string) => s.trim()).filter(Boolean) } })()
                                 : user.areas_atuacao)
                              : [],
       })

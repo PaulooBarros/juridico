@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'email e role são obrigatórios' }, { status: 400 })
   }
 
-  const supabase = createClient()
   const userId = session.user.id
+  const supabase = createClient(userId)
 
   // Busca o escritório do usuário
   const { data: membro } = await supabase

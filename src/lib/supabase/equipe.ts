@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createAuthClient } from './client'
 import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
@@ -27,7 +27,7 @@ export type ConvitePendente = {
 export async function listarMembros(): Promise<Membro[]> {
   const userId = await getSessionUserId()
   if (!userId) return []
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase.rpc('listar_membros_escritorio', { p_user_id: userId })
   if (error) throw error
   return (data as Membro[]) ?? []
@@ -36,7 +36,7 @@ export async function listarMembros(): Promise<Membro[]> {
 export async function listarConvitesPendentes(): Promise<ConvitePendente[]> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return []
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('convites')
     .select('id, email, role, token, expires_at, created_at')
@@ -62,7 +62,7 @@ export async function criarConvite(email: string, role: ConviteRole): Promise<Co
 }
 
 export async function revogarConvite(id: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('convites').delete().eq('id', id)
   if (error) throw error
 }
@@ -70,7 +70,7 @@ export async function revogarConvite(id: string): Promise<void> {
 export async function removerMembro(userId: string): Promise<void> {
   const callerId = await getSessionUserId()
   if (!callerId) throw new Error('Não autenticado')
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.rpc('remover_membro', {
     p_caller_id: callerId,
     p_user_id:   userId,
