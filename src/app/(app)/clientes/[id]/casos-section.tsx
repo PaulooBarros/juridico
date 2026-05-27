@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Briefcase, ArrowRight } from 'lucide-react'
+import { Briefcase, ArrowRight, Search } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CaseStatusBadge } from '@/features/shared/status-badge'
 import { listarCasos, type Caso } from '@/lib/supabase/casos'
@@ -14,6 +14,7 @@ interface CasosSectionProps {
 export function CasosSection({ clienteId }: CasosSectionProps) {
   const [casos,   setCasos]   = useState<Caso[]>([])
   const [loading, setLoading] = useState(true)
+  const [search,  setSearch]  = useState('')
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -26,6 +27,16 @@ export function CasosSection({ clienteId }: CasosSectionProps) {
   }, [clienteId])
 
   useEffect(() => { carregar() }, [carregar])
+
+  const filtrados = casos.filter(c => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      c.titulo.toLowerCase().includes(q) ||
+      c.numero?.toLowerCase().includes(q) ||
+      formatArea(c.area).toLowerCase().includes(q)
+    )
+  })
 
   return (
     <Card>
@@ -41,7 +52,22 @@ export function CasosSection({ clienteId }: CasosSectionProps) {
             Ver todos
           </Link>
         </div>
+
+        {/* Busca — só aparece quando há casos */}
+        {!loading && casos.length > 0 && (
+          <div className="relative mt-2">
+            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por título, número ou área…"
+              className="w-full h-8 pl-8 pr-3 rounded-[6px] border border-border bg-background text-[12px] outline-none focus:ring-2 focus:ring-primary/30 transition placeholder:text-muted-foreground/60"
+            />
+          </div>
+        )}
       </CardHeader>
+
       <CardContent>
         {loading ? (
           <div className="py-6 flex items-center justify-center">
@@ -51,9 +77,13 @@ export function CasosSection({ clienteId }: CasosSectionProps) {
           <p className="text-xs text-muted-foreground py-4 text-center">
             Nenhum caso vinculado a este cliente.
           </p>
+        ) : filtrados.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-4 text-center">
+            Nenhum caso encontrado para "{search}".
+          </p>
         ) : (
           <div className="divide-y -mx-5">
-            {casos.slice(0, 5).map(caso => (
+            {filtrados.slice(0, 8).map(caso => (
               <Link
                 key={caso.id}
                 href={`/casos/${caso.id}`}
@@ -75,10 +105,10 @@ export function CasosSection({ clienteId }: CasosSectionProps) {
                 </div>
               </Link>
             ))}
-            {casos.length > 5 && (
+            {filtrados.length > 8 && (
               <div className="px-5 py-2.5">
                 <Link href="/casos" className="text-xs text-primary hover:underline">
-                  Ver mais {casos.length - 5} caso{casos.length - 5 !== 1 ? 's' : ''}
+                  Ver mais {filtrados.length - 8} caso{filtrados.length - 8 !== 1 ? 's' : ''}
                 </Link>
               </div>
             )}

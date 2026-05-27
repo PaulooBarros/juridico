@@ -136,7 +136,7 @@ export default function NotificacoesPage() {
   const naoLidas = notifs.filter(n => !lidas.has(n.id)).length
 
   return (
-    <div className="space-y-5 animate-fade-in max-w-3xl">
+    <div className="space-y-5 animate-fade-in max-w-3xl mx-auto">
 
       {/* Header */}
       <div className="flex items-center justify-between">

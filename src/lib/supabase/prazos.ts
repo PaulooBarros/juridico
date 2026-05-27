@@ -15,6 +15,7 @@ export type Prazo = {
   titulo:          string
   descricao:       string | null
   data_prazo:      string
+  hora:            string | null   // "HH:MM" — opcional
   tipo:            PrazoTipo
   status:          PrazoStatus
   google_event_id: string | null
@@ -24,6 +25,7 @@ export type PrazoInput = {
   titulo:     string
   descricao?: string
   data_prazo: string
+  hora?:      string | null
   tipo:       PrazoTipo
   caso_id?:   string
   status?:    PrazoStatus
