@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createAuthClient } from './client'
 import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
@@ -43,7 +43,7 @@ export type PrazoComCaso = Prazo & { caso_titulo: string | null }
 export async function listarTodosPrazos(): Promise<PrazoComCaso[]> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return []
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data } = await supabase
     .from('prazos')
     .select('*, casos(titulo)')
@@ -57,7 +57,7 @@ export async function listarTodosPrazos(): Promise<PrazoComCaso[]> {
 }
 
 export async function listarPrazosDoCaso(casoId: string): Promise<Prazo[]> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data } = await supabase
     .from('prazos')
     .select('*')
@@ -73,7 +73,7 @@ export async function criarPrazo(input: PrazoInput): Promise<Prazo> {
   ])
   if (!userId || !escritorioId) throw new Error('Não autenticado')
 
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('prazos')
     .insert({ ...input, escritorio_id: escritorioId, created_by: userId })
@@ -84,13 +84,13 @@ export async function criarPrazo(input: PrazoInput): Promise<Prazo> {
 }
 
 export async function atualizarPrazo(id: string, input: Partial<PrazoInput>): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('prazos').update(input).eq('id', id)
   if (error) throw error
 }
 
 export async function deletarPrazo(id: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('prazos').delete().eq('id', id)
   if (error) throw error
 }

@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createAuthClient } from './client'
 import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
@@ -53,7 +53,7 @@ export const STATUS_LABEL: Record<TransacaoStatus, string> = {
 export async function listarTransacoes(): Promise<Transacao[]> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return []
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data } = await supabase
     .from('transacoes')
     .select('*, casos(titulo), clientes(name)')
@@ -75,7 +75,7 @@ export async function criarTransacao(input: TransacaoInput): Promise<Transacao> 
   ])
   if (!userId || !escritorioId) throw new Error('Não autenticado')
 
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('transacoes')
     .insert({ ...input, escritorio_id: escritorioId, created_by: userId })
@@ -91,13 +91,13 @@ export async function criarTransacao(input: TransacaoInput): Promise<Transacao> 
 }
 
 export async function atualizarTransacao(id: string, input: Partial<TransacaoInput>): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('transacoes').update(input).eq('id', id)
   if (error) throw error
 }
 
 export async function deletarTransacao(id: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('transacoes').delete().eq('id', id)
   if (error) throw error
 }

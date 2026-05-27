@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createClient, createAuthClient } from './client'
 import { authClient, getSessionUserId } from '@/lib/auth-client'
 
 export type ConviteInput = { email: string; role: string }
@@ -58,7 +58,7 @@ export type EscritorioUpdate = Partial<Omit<Escritorio, 'id' | 'created_at' | 'p
 export async function getMeuEscritorioId(): Promise<string | null> {
   const userId = await getSessionUserId()
   if (!userId) return null
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data } = await supabase
     .from('membros')
     .select('escritorio_id')
@@ -72,7 +72,7 @@ export async function getMeuEscritorioId(): Promise<string | null> {
 export async function getMeuEscritorio(): Promise<Escritorio | null> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return null
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data } = await supabase
     .from('escritorios')
     .select('*')
@@ -83,7 +83,7 @@ export async function getMeuEscritorio(): Promise<Escritorio | null> {
 
 /** Atualiza campos do escritório (owner/admin). */
 export async function atualizarEscritorio(id: string, input: EscritorioUpdate): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('escritorios').update(input).eq('id', id)
   if (error) throw error
 }

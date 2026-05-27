@@ -5,6 +5,7 @@ import { StatsCard } from '@/features/shared/stats-card'
 import { CaseStatusBadge } from '@/features/shared/status-badge'
 import { EmptyState } from '@/features/shared/empty-state'
 import { createClient } from '@/lib/supabase/server'
+// createClient(userId) injeta x-user-id → ativa RLS (ou usa service role se disponível)
 import { formatArea, formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { auth } from '@/lib/auth'
@@ -45,11 +46,12 @@ function toLocalDate(iso: string) {
 }
 
 export default async function DashboardPage() {
-  const supabase = createClient()
-
-  // ── 1. Obter escritorio_id do usuário logado ──────────────────────────────
+  // ── 1. Obter userId e escritorio_id do usuário logado ─────────────────────
   const session = await auth.api.getSession({ headers: headers() })
   const userId  = session?.user?.id ?? null
+
+  // createClient(userId) injeta x-user-id → ativa RLS sem precisar de service role
+  const supabase = createClient(userId ?? undefined)
 
   let escritorioId: string | null = null
   if (userId) {

@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CaseStatusBadge } from '@/features/shared/status-badge'
 import { EmptyState } from '@/features/shared/empty-state'
-import { createClient } from '@/lib/supabase/server'
+import { createServerAuthClient } from '@/lib/supabase/server'
 import { formatArea, formatPhase, formatDate, formatCurrency } from '@/lib/utils'
 import { CasoActions } from './caso-actions'
 import { PrazosTab } from './prazos-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createServerAuthClient()
 
   const { data: caso, error } = await supabase
     .from('casos')

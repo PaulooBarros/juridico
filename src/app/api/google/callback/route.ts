@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${redirectBase}?tab=integracoes&erro=token-invalido`)
     }
 
-    const supabase = createClient()
+    const supabase = createClient(userId)
 
     const { data: membro, error: membroError } = await supabase
       .from('membros')

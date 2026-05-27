@@ -33,7 +33,7 @@ export async function revokeToken(accessToken: string) {
 
 /** Retorna cliente calendar autenticado ou null se o user não tiver token. */
 export async function getCalendarClient(userId: string) {
-  const supabase = createClient()
+  const supabase = createClient(userId)
   const { data: row } = await supabase
     .from('google_calendar_tokens')
     .select('*')

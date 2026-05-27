@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createAuthClient } from './client'
 import { getSessionUserId } from '@/lib/auth-client'
 import { getMeuEscritorioId } from './escritorio'
 
@@ -54,7 +54,7 @@ function mapCaso(d: any): Caso {
 export async function listarCasos(): Promise<Caso[]> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return []
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('casos')
     .select('*, clientes(name)')
@@ -65,7 +65,7 @@ export async function listarCasos(): Promise<Caso[]> {
 }
 
 export async function getCaso(id: string): Promise<Caso | null> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('casos')
     .select('*, clientes(name)')
@@ -83,7 +83,7 @@ export async function criarCaso(input: CasoInput): Promise<Caso> {
   ])
   if (!userId || !escritorioId) throw new Error('Não autenticado')
 
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { data, error } = await supabase
     .from('casos')
     .insert({
@@ -109,13 +109,13 @@ export async function criarCaso(input: CasoInput): Promise<Caso> {
 }
 
 export async function atualizarCaso(id: string, input: Partial<CasoInput>): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('casos').update(input).eq('id', id)
   if (error) throw error
 }
 
 export async function deletarCaso(id: string): Promise<void> {
-  const supabase = createClient()
+  const supabase = await createAuthClient()
   const { error } = await supabase.from('casos').delete().eq('id', id)
   if (error) throw error
 }
