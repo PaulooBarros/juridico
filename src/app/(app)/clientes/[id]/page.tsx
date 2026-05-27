@@ -6,6 +6,7 @@ import { ClientStatusBadge } from '@/features/shared/status-badge'
 import { formatDocument, formatDate } from '@/lib/utils'
 import { createServerAuthClient } from '@/lib/supabase/server'
 import { ClienteActions } from './cliente-actions'
+import { DocumentosSection } from './documentos-section'
 
 export default async function ClienteDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerAuthClient()
@@ -97,7 +98,7 @@ export default async function ClienteDetailPage({ params }: { params: { id: stri
           </Card>
         </div>
 
-        {/* Casos e Documentos — ainda mockados, integrarão na próxima etapa */}
+        {/* Casos e Documentos */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -115,21 +116,7 @@ export default async function ClienteDetailPage({ params }: { params: { id: stri
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText size={14} /> Documentos
-                </CardTitle>
-                <Link href="/documentos" className="text-xs text-primary hover:underline">Ver todos</Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground py-6 text-center">
-                A integração de documentos será conectada na próxima etapa.
-              </p>
-            </CardContent>
-          </Card>
+          <DocumentosSection clienteId={params.id} />
         </div>
       </div>
     </div>
