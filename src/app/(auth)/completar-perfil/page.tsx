@@ -53,7 +53,7 @@ export default function CompletarPerfilPage() {
 
     const { error } = await authClient.updateUser({
       oab:           oab.trim(),
-      areas_atuacao: areas.join(','),
+      areas_atuacao: JSON.stringify(areas),
     } as any)
 
     if (error) {
