@@ -37,7 +37,9 @@ export default function EscritorioPage() {
   const [casosCount, setCasosCount] = useState(0)
   const [clientesCount, setClientesCount] = useState(0)
   const [loading,    setLoading]    = useState(true)
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoPreview,      setLogoPreview]      = useState<string | null>(null)
+  const [uploadingLogo,    setUploadingLogo]    = useState(false)
+  const [logoErro,         setLogoErro]         = useState('')
   const [form,       setForm]       = useState<Form>({ nome: '', cnpj: '', oab_sociedade: '', especialidade: '', cidade_uf: '', slogan: '', descricao: '' })
   const [saving,     setSaving]     = useState(false)
   const [sucesso,    setSucesso]    = useState(false)
@@ -51,6 +53,7 @@ export default function EscritorioPage() {
       const [esc, ms] = await Promise.all([getMeuEscritorio(), listarMembros()])
       if (esc) {
         setEscritorio(esc)
+        setLogoPreview(esc.logo_url ?? null)
         setForm({
           nome:          esc.nome          ?? '',
           cnpj:          esc.cnpj          ?? '',
@@ -74,12 +77,37 @@ export default function EscritorioPage() {
     carregar()
   }, [])
 
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    setLogoErro('')
+    if (file.size > 2 * 1024 * 1024) { setLogoErro('Máximo 2 MB'); return }
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      setLogoErro('Apenas JPG, PNG ou WebP'); return
+    }
+
+    // Preview imediato
     const reader = new FileReader()
     reader.onloadend = () => setLogoPreview(reader.result as string)
     reader.readAsDataURL(file)
+
+    // Upload real
+    setUploadingLogo(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res  = await fetch('/api/upload/logo', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { setLogoErro(data.error ?? 'Erro no upload'); return }
+      setLogoPreview(data.url)
+      setEscritorio(prev => prev ? { ...prev, logo_url: data.url } : prev)
+    } catch {
+      setLogoErro('Erro de conexão')
+    } finally {
+      setUploadingLogo(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
   }
 
   async function handleSalvar(e: React.FormEvent) {
@@ -133,13 +161,15 @@ export default function EscritorioPage() {
                 <>
                   <button
                     onClick={() => fileRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background hover:bg-primary/90 transition-colors"
+                    disabled={uploadingLogo}
+                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background hover:bg-primary/90 transition-colors disabled:opacity-60"
                   >
-                    <Camera size={11} />
+                    {uploadingLogo ? <Loader2 size={10} className="animate-spin" /> : <Camera size={11} />}
                   </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={handleLogoChange} />
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleLogoChange} />
                 </>
               )}
+              {logoErro && <p className="text-[11px] text-destructive mt-1 absolute -bottom-5 left-0 whitespace-nowrap">{logoErro}</p>}
             </div>
 
             <div className="flex-1">

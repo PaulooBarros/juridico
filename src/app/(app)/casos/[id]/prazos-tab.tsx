@@ -44,6 +44,7 @@ function PrazoModal({ casoId, prazo, onClose, onSaved }: ModalProps) {
     titulo:     prazo?.titulo     ?? '',
     descricao:  prazo?.descricao  ?? '',
     data_prazo: prazo?.data_prazo ?? '',
+    hora:       prazo?.hora       ?? '',
     tipo:       prazo?.tipo       ?? 'prazo',
     caso_id:    casoId,
     status:     prazo?.status     ?? 'pending',
@@ -97,14 +98,19 @@ function PrazoModal({ casoId, prazo, onClose, onSaved }: ModalProps) {
                 className="h-9 text-[13px]" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[12px] text-muted-foreground">Tipo</Label>
-              <select value={form.tipo} onChange={e => setForm(p => ({ ...p, tipo: e.target.value as PrazoTipo }))}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-ring">
-                {(Object.keys(PRAZO_TIPO_LABEL) as PrazoTipo[]).map(t => (
-                  <option key={t} value={t}>{PRAZO_TIPO_LABEL[t]}</option>
-                ))}
-              </select>
+              <Label className="text-[12px] text-muted-foreground">Horário <span className="text-muted-foreground/50">(opcional)</span></Label>
+              <Input type="time" value={form.hora ?? ''} onChange={e => setForm(p => ({ ...p, hora: e.target.value || null }))}
+                className="h-9 text-[13px]" />
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[12px] text-muted-foreground">Tipo</Label>
+            <select value={form.tipo} onChange={e => setForm(p => ({ ...p, tipo: e.target.value as PrazoTipo }))}
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-ring">
+              {(Object.keys(PRAZO_TIPO_LABEL) as PrazoTipo[]).map(t => (
+                <option key={t} value={t}>{PRAZO_TIPO_LABEL[t]}</option>
+              ))}
+            </select>
           </div>
           {prazo && (
             <div className="space-y-1.5">
@@ -313,7 +319,7 @@ function PrazoRow({ prazo, onEdit, onDelete }: { prazo: Prazo; onEdit: () => voi
         </p>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className={`text-[10px] font-medium ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
-            {formatDate(prazo.data_prazo)}{overdue ? ' · Atrasado' : ''}
+            {formatDate(prazo.data_prazo)}{prazo.hora ? ` · ${prazo.hora}` : ''}{overdue ? ' · Atrasado' : ''}
           </span>
           <Badge className={`text-[10px] border ${STATUS_COLOR[prazo.status]}`} variant="outline">
             {STATUS_LABEL[prazo.status]}

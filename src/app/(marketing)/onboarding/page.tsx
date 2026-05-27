@@ -148,7 +148,7 @@ export default function OnboardingPage() {
 
       <footer className="border-t border-border px-10 py-4 flex justify-between text-[11px] text-muted-foreground">
         <span className="font-serif italic text-[12px]">&ldquo;Quando tudo está sob controle, a advocacia fica inevitável.&rdquo;</span>
-        <span className="font-mono">Vetor Jurídico v2026.05</span>
+        <span className="font-mono">Leea v2026.05</span>
       </footer>
     </div>
   )

@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const FROM     = process.env.RESEND_FROM     ?? 'Vetor Jurídico <onboarding@resend.dev>'
+const FROM     = process.env.RESEND_FROM     ?? 'Leea <onboarding@resend.dev>'
 const BASE_URL = process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'
 
 // Design tokens (light mode)
@@ -64,7 +64,7 @@ function baseTemplate(content: string) {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid ${C.border};background:${C.footer};">
             <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:${C.fgSubtle};text-transform:uppercase;letter-spacing:0.07em;">
-              © 2026 Vetor Jurídico · São Paulo, Brasil
+              © 2026 Leea · São Paulo, Brasil
             </p>
           </td>
         </tr>
@@ -115,7 +115,7 @@ export async function sendPasswordResetEmail(email: string, url: string) {
   await getResend().emails.send({
     from:    FROM,
     to:      email,
-    subject: 'Redefina sua senha — Vetor Jurídico',
+    subject: 'Redefina sua senha — Leea',
     html,
   })
 }
@@ -166,7 +166,7 @@ export async function sendConviteEmail(opts: {
   await getResend().emails.send({
     from:    FROM,
     to:      email,
-    subject: `Convite para ${nomeEscritorioR} — Vetor Jurídico`,
+    subject: `Convite para ${nomeEscritorioR} — Leea`,
     html,
   })
 }

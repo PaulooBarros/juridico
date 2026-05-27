@@ -49,13 +49,17 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   const router   = useRouter()
 
   const [userName,   setUserName]   = useState('')
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [officeName, setOfficeName] = useState('')
   const [officePlan, setOfficePlan] = useState('')
 
+  // Re-busca sessão e escritório a cada navegação para refletir atualizações
+  // de avatar/logo feitas em outras páginas (ex: /perfil, /escritorio)
   useEffect(() => {
     authClient.getSession().then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
+      setUserAvatar(user?.image ?? null)
     })
 
     getMeuEscritorioId().then(escritorioId => {
@@ -72,7 +76,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           }
         })
     })
-  }, [])
+  }, [pathname])
 
   async function handleLogout() {
     await authClient.signOut()
@@ -123,15 +127,16 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         >
           {isCollapsed ? (
             <div className="hidden lg:flex w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground items-center justify-center font-serif italic font-semibold text-[13px]">
-              V
+              L
             </div>
-          ) : null}
-          <img
-            src="/vetor_juridico_opcao4.svg"
-            alt="Vetor Jurídico"
-            className={cn('w-full object-contain', isCollapsed && 'lg:hidden')}
-            style={{ height: 64, backgroundColor: '#1A1714' }}
-          />
+          ) : (
+            <div className="flex items-center gap-2.5 px-4 py-4">
+              <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px] shrink-0">
+                L
+              </div>
+              <span className="font-serif font-medium text-[16px] tracking-[-0.01em]">Leea</span>
+            </div>
+          )}
         </Link>
 
         {/* Office selector */}
@@ -195,8 +200,11 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
               (!isCollapsed || mobileOpen) ? '' : 'lg:justify-center lg:px-0'
             )}
           >
-            <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center font-semibold text-[10px] shrink-0">
-              {userName ? getInitials(userName) : '?'}
+            <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center font-semibold text-[10px] shrink-0 overflow-hidden">
+              {userAvatar
+                ? <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                : (userName ? getInitials(userName) : '?')
+              }
             </div>
             {(!isCollapsed || mobileOpen) && (
               <div className="flex-1 min-w-0">

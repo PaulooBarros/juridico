@@ -15,7 +15,7 @@ export default function EscritoriosPage() {
           <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
             <Scale size={15} className="text-white" />
           </div>
-          <span className="text-sm font-bold">Vetor Jurídico</span>
+          <span className="text-sm font-bold">Leea</span>
         </div>
         <ThemeToggle />
       </header>

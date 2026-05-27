@@ -5,11 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CaseStatusBadge } from '@/features/shared/status-badge'
-import { EmptyState } from '@/features/shared/empty-state'
 import { createServerAuthClient } from '@/lib/supabase/server'
 import { formatArea, formatPhase, formatDate, formatCurrency } from '@/lib/utils'
 import { CasoActions } from './caso-actions'
 import { PrazosTab } from './prazos-tab'
+import { DocumentosTab } from './documentos-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerAuthClient()
@@ -164,14 +164,10 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
           </div>
         </TabsContent>
 
-        {/* Documentos — em breve */}
+        {/* Documentos */}
         <TabsContent value="documentos">
           <div className="mt-4">
-            <EmptyState
-              icon={FileText}
-              title="Em breve"
-              description="O módulo de documentos será integrado na próxima etapa."
-            />
+            <DocumentosTab casoId={params.id} clienteId={clienteId} />
           </div>
         </TabsContent>
       </Tabs>

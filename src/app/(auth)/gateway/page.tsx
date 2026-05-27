@@ -73,7 +73,7 @@ export default function GatewayPage() {
           </p>
           <h1 className="font-serif text-[36px] font-medium tracking-[-0.02em] leading-[1.15]">Como você quer começar?</h1>
           <p className="text-[14px] text-muted-foreground mt-3 max-w-[52ch] mx-auto">
-            Você ainda não está vinculado a nenhum escritório no Vetor Jurídico.
+            Você ainda não está vinculado a nenhum escritório na Leea.
           </p>
         </div>
 

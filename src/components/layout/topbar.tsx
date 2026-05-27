@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Bell, ChevronRight, Plus, Search, Moon, Sun, Menu } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { usePathname } from 'next/navigation'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
@@ -19,16 +20,19 @@ interface TopbarProps {
 
 export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: TopbarProps) {
   const { theme, setTheme } = useTheme()
-  const [userName, setUserName] = useState('')
-  const [mounted, setMounted]   = useState(false)
+  const pathname = usePathname()
+  const [userName,   setUserName]   = useState('')
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const [mounted,    setMounted]    = useState(false)
 
   useEffect(() => {
     setMounted(true)
     authClient.getSession().then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
+      setUserAvatar(user?.image ?? null)
     })
-  }, [])
+  }, [pathname])
 
   return (
     <header
@@ -115,6 +119,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: 
             className="flex items-center gap-2 rounded-[5px] px-2 py-1 hover:bg-accent transition-colors"
           >
             <Avatar className="w-[22px] h-[22px]">
+              {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
               <AvatarFallback className={cn('text-[9px] font-semibold', 'bg-foreground text-background')}>
                 {userName ? getInitials(userName) : '?'}
               </AvatarFallback>

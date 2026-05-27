@@ -14,7 +14,7 @@ export const currentOffice = {
   cnpj: '12.345.678/0001-90',
   address: 'Av. Brigadeiro Faria Lima, 3000, 12º andar — Itaim Bibi',
   phone: '(11) 3456-7890',
-  email: 'contato@vetorjuridico.com.br',
+  email: 'contato@leea.com.br',
   plan: 'pro' as const,
   createdAt: '2022-01-01T00:00:00Z',
 }
@@ -22,7 +22,7 @@ export const currentOffice = {
 export const currentUser = {
   id: 'usr-001',
   name: 'Dr. Rafael Mendes',
-  email: 'rafael.mendes@vetorjuridico.com.br',
+  email: 'rafael.mendes@leea.com.br',
   oab: 'OAB/SP 234.567',
   bio: 'Advogado com 12 anos de experiência nas áreas cível, empresarial e tributário. Especialista em litígios complexos e recuperação de crédito.',
   specialties: ['Direito Civil', 'Direito Empresarial', 'Direito Tributário'],

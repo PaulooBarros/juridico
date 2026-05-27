@@ -53,12 +53,11 @@ function LoginContent() {
 
       {/* Left — brand side */}
       <div className="hidden lg:flex flex-col justify-between border-r border-border px-12 py-12" style={{ backgroundColor: '#1A1714' }}>
-        <Link href="/landing">
-          <img
-            src="/vetor_juridico_opcao4.svg"
-            alt="Vetor Jurídico"
-            className="w-full max-w-[340px] h-auto"
-          />
+        <Link href="/landing" className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-[4px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-bold text-[16px]">
+            L
+          </div>
+          <span className="font-serif font-medium text-[22px] tracking-[-0.01em]" style={{ color: '#FBFAF6' }}>Leea</span>
         </Link>
 
         <div>
@@ -66,7 +65,7 @@ function LoginContent() {
             &ldquo;Quando tudo está sob controle, a advocacia fica{' '}
             <em style={{ color: '#A8231F' }}>inevitável.</em>&rdquo;
           </p>
-          <p className="font-mono text-[11px] tracking-[0.08em] uppercase mt-6" style={{ color: '#5C554C' }}>— Vetor Jurídico</p>
+          <p className="font-mono text-[11px] tracking-[0.08em] uppercase mt-6" style={{ color: '#5C554C' }}>— Leea · Software Jurídico</p>
         </div>
 
         <p className="font-mono text-[11px]" style={{ color: '#5C554C' }}>v2026.05 · São Paulo, Brasil</p>
