@@ -53,6 +53,8 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   const [officeName, setOfficeName] = useState('')
   const [officePlan, setOfficePlan] = useState('')
 
+  // Re-busca sessão e escritório a cada navegação para refletir atualizações
+  // de avatar/logo feitas em outras páginas (ex: /perfil, /escritorio)
   useEffect(() => {
     authClient.getSession().then(({ data }) => {
       const user = data?.user as any
@@ -74,7 +76,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           }
         })
     })
-  }, [])
+  }, [pathname])
 
   async function handleLogout() {
     await authClient.signOut()
