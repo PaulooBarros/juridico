@@ -49,6 +49,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   const router   = useRouter()
 
   const [userName,   setUserName]   = useState('')
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [officeName, setOfficeName] = useState('')
   const [officePlan, setOfficePlan] = useState('')
 
@@ -56,6 +57,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
     authClient.getSession().then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
+      setUserAvatar(user?.image ?? null)
     })
 
     getMeuEscritorioId().then(escritorioId => {
@@ -196,8 +198,11 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
               (!isCollapsed || mobileOpen) ? '' : 'lg:justify-center lg:px-0'
             )}
           >
-            <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center font-semibold text-[10px] shrink-0">
-              {userName ? getInitials(userName) : '?'}
+            <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center font-semibold text-[10px] shrink-0 overflow-hidden">
+              {userAvatar
+                ? <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                : (userName ? getInitials(userName) : '?')
+              }
             </div>
             {(!isCollapsed || mobileOpen) && (
               <div className="flex-1 min-w-0">

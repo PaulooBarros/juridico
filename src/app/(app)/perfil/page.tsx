@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { Camera, User, Award, Loader2 } from 'lucide-react'
+import { Camera, User, Award, Loader2, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,15 +28,18 @@ export default function PerfilPage() {
   const [email,    setEmail]    = useState('')
   const [avatar,   setAvatar]   = useState<string | null>(null)
   const [form,     setForm]     = useState<Form>({ nome_profissional: '', oab: '', bio: '', areas_atuacao: [] })
-  const [loading,  setLoading]  = useState(true)
-  const [saving,   setSaving]   = useState(false)
-  const [sucesso,  setSucesso]  = useState(false)
-  const [erro,     setErro]     = useState('')
+  const [loading,        setLoading]        = useState(true)
+  const [saving,         setSaving]         = useState(false)
+  const [uploadingAvatar,setUploadingAvatar] = useState(false)
+  const [avatarErro,     setAvatarErro]     = useState('')
+  const [sucesso,        setSucesso]        = useState(false)
+  const [erro,           setErro]           = useState('')
 
   useEffect(() => {
     authClient.getSession().then(({ data }) => {
       const user = data?.user as any
       setEmail(user?.email ?? '')
+      setAvatar(user?.image ?? null)
       setForm({
         nome_profissional: user?.nome_profissional ?? user?.name ?? '',
         oab:               user?.oab               ?? '',
@@ -60,12 +63,35 @@ export default function PerfilPage() {
     }))
   }
 
-  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => setAvatar(reader.result as string)
-      reader.readAsDataURL(file)
+    if (!file) return
+
+    setAvatarErro('')
+    if (file.size > 2 * 1024 * 1024) { setAvatarErro('Máximo 2 MB'); return }
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      setAvatarErro('Apenas JPG, PNG ou WebP'); return
+    }
+
+    // Preview imediato
+    const reader = new FileReader()
+    reader.onloadend = () => setAvatar(reader.result as string)
+    reader.readAsDataURL(file)
+
+    // Upload real
+    setUploadingAvatar(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res  = await fetch('/api/upload/avatar', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { setAvatarErro(data.error ?? 'Erro no upload'); return }
+      setAvatar(data.url)
+    } catch {
+      setAvatarErro('Erro de conexão')
+    } finally {
+      setUploadingAvatar(false)
+      if (fileRef.current) fileRef.current.value = ''
     }
   }
 
@@ -116,11 +142,12 @@ export default function PerfilPage() {
               </Avatar>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background hover:bg-primary/90 transition-colors"
+                disabled={uploadingAvatar}
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background hover:bg-primary/90 transition-colors disabled:opacity-60"
               >
-                <Camera size={13} />
+                {uploadingAvatar ? <Loader2 size={12} className="animate-spin" /> : <Camera size={13} />}
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleAvatarChange} />
             </div>
             <div>
               <p className="text-sm font-semibold">{form.nome_profissional || '—'}</p>
@@ -128,10 +155,12 @@ export default function PerfilPage() {
               <p className="text-xs text-muted-foreground">{email}</p>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="mt-2 px-3 h-7 border border-border rounded-[5px] text-xs text-muted-foreground hover:bg-accent transition-colors"
+                disabled={uploadingAvatar}
+                className="mt-2 px-3 h-7 border border-border rounded-[5px] text-xs text-muted-foreground hover:bg-accent transition-colors disabled:opacity-60"
               >
-                Alterar foto
+                {uploadingAvatar ? 'Enviando…' : 'Alterar foto'}
               </button>
+              {avatarErro && <p className="text-[11px] text-destructive mt-1">{avatarErro}</p>}
             </div>
           </div>
         </CardContent>
