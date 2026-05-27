@@ -1,8 +1,8 @@
-import { Check, Zap, Building, Star } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Check, Lock, Mail } from 'lucide-react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 
+/*
 const PLANS = [
   {
     id: 'starter',
@@ -78,88 +78,73 @@ const COMPARISON = [
   { feature: 'SLA', starter: '—', pro: 'Prioritário', enterprise: '99,9%' },
   { feature: 'Suporte', starter: 'E-mail', pro: 'Chat + E-mail', enterprise: 'Dedicado' },
 ]
+*/
+
+const BETA_FEATURES = [
+  'Gestão completa de casos',
+  'Cadastro ilimitado de clientes',
+  'Upload de documentos PDF',
+  'Controle de prazos e audiências',
+  'Calendário integrado',
+  'Gestão de equipe',
+  'Controle financeiro',
+  'Perfil do escritório',
+  'Notificações',
+  'Acesso antecipado a novidades',
+]
 
 export default function PlanosPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="text-center max-w-xl mx-auto">
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Planos e preços</h1>
-        <p className="text-sm text-muted-foreground">
-          Comece com 14 dias grátis. Sem cartão de crédito. Cancele quando quiser.
+        <div className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full mb-4">
+          <Lock size={9} /> Beta privado
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">Acesso antecipado</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          A Leea está em testes fechados. Durante o beta, o acesso é gratuito e você
+          tem todas as funcionalidades disponíveis sem restrições.
         </p>
       </div>
 
-      {/* Planos */}
-      <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto">
-        {PLANS.map((plan) => {
-          const Icon = plan.icon
-          return (
-            <Card key={plan.id} className={plan.highlight ? 'border-primary ring-1 ring-primary' : ''}>
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${plan.highlight ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                    <Icon size={15} />
-                  </div>
-                  {plan.highlight && <Badge className="text-[10px]">Recomendado</Badge>}
-                </div>
-                <h2 className="text-base font-bold">{plan.name}</h2>
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl font-bold">{plan.price}</span>
-                  <span className="text-sm text-muted-foreground">{plan.period}</span>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{plan.desc}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button
-                  className="w-full"
-                  variant={plan.highlight ? 'default' : 'outline'}
-                  size="sm"
-                >
-                  {plan.id === 'enterprise' ? 'Falar com vendas' : 'Começar grátis'}
-                </Button>
-                <div className="space-y-2">
-                  {plan.features.map((f) => (
-                    <div key={f} className="flex items-center gap-2">
-                      <Check size={13} className={plan.highlight ? 'text-primary' : 'text-emerald-600 dark:text-emerald-400'} />
-                      <span className="text-xs">{f}</span>
-                    </div>
-                  ))}
-                  {plan.missing.map((f) => (
-                    <div key={f} className="flex items-center gap-2 opacity-40">
-                      <div className="w-3 h-3 flex items-center justify-center">
-                        <div className="w-3 h-px bg-muted-foreground" />
-                      </div>
-                      <span className="text-xs">{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
-
-      {/* Tabela comparativa */}
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-base font-bold mb-4">Comparativo detalhado</h2>
-        <div className="rounded-lg border overflow-hidden bg-card">
-          <div className="grid grid-cols-4 border-b bg-muted/30">
-            <div className="px-4 py-2.5 text-xs font-semibold text-muted-foreground">Recurso</div>
-            {['Starter', 'Pro', 'Enterprise'].map(p => (
-              <div key={p} className="px-4 py-2.5 text-xs font-semibold text-center">{p}</div>
-            ))}
-          </div>
-          <div className="divide-y">
-            {COMPARISON.map((row) => (
-              <div key={row.feature} className="grid grid-cols-4 hover:bg-muted/20 transition-colors">
-                <div className="px-4 py-2.5 text-xs text-muted-foreground">{row.feature}</div>
-                <div className="px-4 py-2.5 text-xs text-center">{row.starter}</div>
-                <div className="px-4 py-2.5 text-xs text-center font-medium">{row.pro}</div>
-                <div className="px-4 py-2.5 text-xs text-center">{row.enterprise}</div>
+      {/* Card beta */}
+      <div className="max-w-sm mx-auto">
+        <Card className="border-primary ring-1 ring-primary">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                <Lock size={14} />
+              </div>
+              <Badge className="text-[10px]">Seu plano atual</Badge>
+            </div>
+            <h2 className="text-base font-bold">Beta Privado</h2>
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold">Grátis</span>
+              <span className="text-sm text-muted-foreground">durante o beta</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Acesso completo à plataforma enquanto aperfeiçoamos o produto com você.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {BETA_FEATURES.map(f => (
+              <div key={f} className="flex items-center gap-2">
+                <Check size={13} className="text-primary shrink-0" />
+                <span className="text-xs">{f}</span>
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Aviso lançamento */}
+      <div className="max-w-sm mx-auto rounded-xl border border-border bg-muted/30 p-5 text-center space-y-2">
+        <Mail size={18} className="text-muted-foreground mx-auto" />
+        <p className="text-sm font-medium">Planos pagos em breve</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Assim que os planos forem lançados, você será notificado por e-mail
+          com condições especiais para quem participou do beta.
+        </p>
       </div>
     </div>
   )
