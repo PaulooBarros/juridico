@@ -110,3 +110,25 @@
 
 /* Tabular numbers utility */
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* TipTap — editor de modelos de documentos */
+.modelo-editor-content { cursor: text; }
+.modelo-editor-content p { margin-bottom: 0.5rem; }
+.modelo-editor-content p:last-child { margin-bottom: 0; }
+.modelo-editor-content h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+.modelo-editor-content h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.modelo-editor-content h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.modelo-editor-content ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+.modelo-editor-content ol { list-style: decimal; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+.modelo-editor-content li { margin-bottom: 0.2rem; }
+.modelo-editor-content strong { font-weight: 600; }
+.modelo-editor-content em { font-style: italic; }
+.modelo-editor-content blockquote { border-left: 3px solid hsl(var(--border)); padding-left: 0.75rem; color: hsl(var(--muted-foreground)); margin: 0.5rem 0; }
+.modelo-editor-content code { font-family: monospace; background: hsl(var(--muted)); padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.9em; }
+.modelo-editor-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  float: left;
+  height: 0;
+}

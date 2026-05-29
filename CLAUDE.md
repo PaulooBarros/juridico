@@ -183,14 +183,14 @@ Devem ser rodadas manualmente no Supabase SQL Editor (projeto não usa Supabase 
 - **Tarefas por caso** (estilo Planner) — aba "Tarefas" no detalhe do caso; cada tarefa tem título, descrição, responsável (membro do escritório), status (pendente/em andamento/concluída), prioridade (alta/média/baixa) e data limite opcional; diferente de prazo — prazo é obrigação processual fatal, tarefa é atividade interna reatribuível; requer nova tabela `tarefas (id, caso_id, escritorio_id, titulo, descricao, responsavel_id, status, prioridade, data_limite, created_by, created_at)`
 - **Busca global** (`Ctrl+K`) — encontrar caso, cliente, documento de qualquer tela
 - **Modelos de documentos** — ver seção detalhada abaixo (planejado, branch `feat/modelos-documentos`)
-- **Integração com tribunal** — consulta de movimentações via DataJud (CNJ) ou parceiro (JusBrasil/Escavador)
+- **Integração com tribunal** — consulta de movimentações via DataJud (CNJ) ou parceiro (JusBrasil/Escavador) TODO
 - **Casos → aba Financeiro** — lançamentos vinculados diretamente ao caso
 - **Dashboard com gráficos** — receita mensal, casos por área, prazos cumpridos
 - **Autocomplete de cliente** — preencher CNPJ/CPF via BrasilAPI + validação de formato; ao digitar CNPJ, preenche razão social, endereço e sócios automaticamente; CPF apenas valida formato (Receita Federal não expõe dados pessoais via API pública)
 - **CEP automático** — endereço preenchido ao digitar o CEP via BrasilAPI (sem autenticação)
 - **Campo "tipo de processo"** — físico ou eletrônico no cadastro do caso; usado pela calculadora de prazos para aplicar regra correta
 
-### Modelos de documentos — planejamento detalhado
+### Modelos de documentos — planejamento detalhado TODO
 
 **Branch:** `feat/modelos-documentos`
 

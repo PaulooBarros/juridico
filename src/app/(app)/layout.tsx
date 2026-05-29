@@ -27,7 +27,7 @@ const PAGE_META: Record<string, { title: string; breadcrumb?: Array<{ label: str
 
 const ACTION_MAP: Record<string, { label: string; href?: string }> = {
   '/documentos': { label: 'Upload',        href: '#' },
-  '/modelos':    { label: 'Novo Modelo',   href: '#' },
+  '/modelos':    { label: 'Novo Modelo',   href: '/modelos/novo' },
   '/equipe':     { label: 'Convidar Membro', href: '#' },
   '/financeiro': { label: 'Lançamento',   href: '#' },
 }
@@ -37,6 +37,8 @@ function getPageMeta(pathname: string) {
   if (pathname.startsWith('/clientes/'))  return { title: 'Detalhe do Cliente',  breadcrumb: [{ label: 'Clientes',   href: '/clientes' }] }
   if (pathname.startsWith('/casos/'))     return { title: 'Detalhe do Caso',     breadcrumb: [{ label: 'Casos',      href: '/casos' }] }
   if (pathname.startsWith('/documentos/'))return { title: 'Documento',           breadcrumb: [{ label: 'Documentos', href: '/documentos' }] }
+  if (pathname === '/modelos/novo')        return { title: 'Novo Modelo',         breadcrumb: [{ label: 'Modelos',    href: '/modelos' }] }
+  if (pathname.startsWith('/modelos/'))   return { title: 'Editor de Modelo',    breadcrumb: [{ label: 'Modelos',    href: '/modelos' }] }
   return { title: 'Leea' }
 }
 
