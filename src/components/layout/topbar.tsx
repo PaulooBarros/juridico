@@ -11,14 +11,15 @@ import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
 interface TopbarProps {
-  title:       string
-  breadcrumb?: Array<{ label: string; href?: string }>
-  action?:     { label: string; href?: string; onClick?: () => void }
+  title:        string
+  breadcrumb?:  Array<{ label: string; href?: string }>
+  action?:      { label: string; href?: string; onClick?: () => void }
   sidebarWidth: number
-  onMenuOpen:  () => void
+  onMenuOpen:   () => void
+  onSearchOpen: () => void
 }
 
-export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: TopbarProps) {
+export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen, onSearchOpen }: TopbarProps) {
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
   const [userName,   setUserName]   = useState('')
@@ -89,8 +90,13 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen }: 
           )}
 
           {/* Search */}
-          <button className="hidden sm:flex w-[30px] h-[30px] rounded-[5px] items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+          <button
+            onClick={onSearchOpen}
+            className="hidden sm:flex items-center gap-2 h-[30px] px-2 rounded-[5px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="Busca global (Ctrl+K)"
+          >
             <Search size={15} />
+            <span className="text-[11px] font-mono hidden md:block">Ctrl+K</span>
           </button>
 
           {/* Notifications */}
