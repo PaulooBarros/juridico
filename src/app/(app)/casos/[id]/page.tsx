@@ -10,6 +10,7 @@ import { formatArea, formatPhase, formatDate, formatCurrency } from '@/lib/utils
 import { CasoActions } from './caso-actions'
 import { PrazosTab } from './prazos-tab'
 import { DocumentosTab } from './documentos-tab'
+import { TarefasTab } from './tarefas-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerAuthClient()
@@ -59,6 +60,7 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
           <TabsTrigger value="prazos">Prazos</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
         </TabsList>
@@ -168,6 +170,13 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Tarefas */}
+        <TabsContent value="tarefas">
+          <div className="mt-4">
+            <TarefasTab casoId={params.id} />
           </div>
         </TabsContent>
 
