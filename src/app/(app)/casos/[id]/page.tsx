@@ -194,7 +194,7 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
         {/* Financeiro */}
         <TabsContent value="financeiro">
           <div className="mt-4">
-            <FinanceiroTab casoId={params.id} />
+            <FinanceiroTab casoId={params.id} valorCausa={caso.valor_causa} />
           </div>
         </TabsContent>
 

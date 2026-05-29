@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { DollarSign, Plus, Pencil, Trash2, Loader2, CheckCircle2, AlertTriangle, TrendingUp } from 'lucide-react'
+import { DollarSign, Plus, Pencil, Trash2, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -30,11 +30,12 @@ const STATUS_COLOR: Record<TransacaoStatus, string> = {
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
-function TransacaoModal({ casoId, transacao, onClose, onSaved }: {
-  casoId:     string
-  transacao?: Transacao
-  onClose:    () => void
-  onSaved:    (t: Transacao) => void
+function TransacaoModal({ casoId, valorCausa, transacao, onClose, onSaved }: {
+  casoId:      string
+  valorCausa?: number | null
+  transacao?:  Transacao
+  onClose:     () => void
+  onSaved:     (t: Transacao) => void
 }) {
   const [form, setForm] = useState<TransacaoInput>({
     descricao:  transacao?.descricao  ?? '',
@@ -47,15 +48,22 @@ function TransacaoModal({ casoId, transacao, onClose, onSaved }: {
     cliente_id: transacao?.cliente_id ?? '',
     notas:      transacao?.notas      ?? '',
   })
+  const [pct,      setPct]      = useState('')
   const [clientes, setClientes] = useState<{ id: string; name: string }[]>([])
-  const [saving, setSaving]     = useState(false)
-  const [erro, setErro]         = useState('')
+  const [saving,   setSaving]   = useState(false)
+  const [erro,     setErro]     = useState('')
 
   useEffect(() => {
     listarClientes().then(cls => setClientes(cls.map(c => ({ id: c.id, name: c.name }))))
   }, [])
 
   const set = (patch: Partial<TransacaoInput>) => setForm(p => ({ ...p, ...patch }))
+
+  function aplicarPct(p: number) {
+    if (!valorCausa) return
+    setPct(String(p))
+    set({ valor: Math.round(valorCausa * p / 100 * 100) / 100 })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -126,7 +134,7 @@ function TransacaoModal({ casoId, transacao, onClose, onSaved }: {
             <div className="space-y-1.5">
               <Label className="text-[12px] text-muted-foreground">Valor (R$) *</Label>
               <Input type="number" min="0" step="0.01" value={form.valor || ''}
-                onChange={e => set({ valor: parseFloat(e.target.value) || 0 })}
+                onChange={e => { setPct(''); set({ valor: parseFloat(e.target.value) || 0 }) }}
                 placeholder="0,00" className="h-9 text-[13px]" />
             </div>
             <div className="space-y-1.5">
@@ -135,6 +143,44 @@ function TransacaoModal({ casoId, transacao, onClose, onSaved }: {
                 className="h-9 text-[13px]" />
             </div>
           </div>
+
+          {/* % do valor da causa */}
+          {valorCausa && valorCausa > 0 && (
+            <div className="rounded-md bg-muted/40 border border-border px-3 py-2.5 space-y-2">
+              <p className="text-[11px] text-muted-foreground">
+                % do valor da causa <span className="font-medium text-foreground">{formatCurrency(valorCausa)}</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[10, 20, 30].map(p => (
+                    <button key={p} type="button" onClick={() => aplicarPct(p)}
+                      className={cn(
+                        'px-2.5 h-7 rounded border text-xs transition-colors',
+                        pct === String(p)
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'border-border text-muted-foreground hover:bg-accent'
+                      )}>
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 flex-1">
+                  <Input
+                    type="number" min="0" max="100" step="0.5"
+                    value={pct}
+                    onChange={e => {
+                      setPct(e.target.value)
+                      const p = parseFloat(e.target.value)
+                      if (!isNaN(p) && p > 0) set({ valor: Math.round(valorCausa * p / 100 * 100) / 100 })
+                    }}
+                    placeholder="outro %"
+                    className="h-7 text-[12px]"
+                  />
+                  <span className="text-[12px] text-muted-foreground shrink-0">%</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {form.status === 'paid' && (
             <div className="space-y-1.5">
@@ -210,7 +256,10 @@ function ConfirmarExclusao({ transacao, onClose, onDeleted }: {
 
 // ─── Tab principal ────────────────────────────────────────────────────────────
 
-export function FinanceiroTab({ casoId }: { casoId: string }) {
+export function FinanceiroTab({ casoId, valorCausa }: {
+  casoId:      string
+  valorCausa?: number | null
+}) {
   const [transacoes, setTransacoes] = useState<Transacao[]>([])
   const [loading,    setLoading]    = useState(true)
   const [modalOpen,  setModalOpen]  = useState(false)
@@ -231,15 +280,19 @@ export function FinanceiroTab({ casoId }: { casoId: string }) {
     setEditing(undefined)
   }
 
-  const totalRecebido = transacoes.filter(t => t.status === 'paid').reduce((s, t) => s + Number(t.valor), 0)
-  const totalPendente = transacoes.filter(t => t.status === 'pending').reduce((s, t) => s + Number(t.valor), 0)
-  const totalAtraso   = transacoes.filter(t => t.status === 'overdue').reduce((s, t) => s + Number(t.valor), 0)
+  const ativos       = transacoes.filter(t => t.status !== 'cancelled')
+  const totalRecebido = ativos.filter(t => t.status === 'paid').reduce((s, t) => s + Number(t.valor), 0)
+  const totalPendente = ativos.filter(t => t.status === 'pending').reduce((s, t) => s + Number(t.valor), 0)
+  const totalAtraso   = ativos.filter(t => t.status === 'overdue').reduce((s, t) => s + Number(t.valor), 0)
+  const totalLancado  = ativos.reduce((s, t) => s + Number(t.valor), 0)
+  const pctCausa      = valorCausa && valorCausa > 0 ? Math.min(totalLancado / valorCausa * 100, 100) : 0
 
   return (
     <>
       {(modalOpen || editing) && (
         <TransacaoModal
           casoId={casoId}
+          valorCausa={valorCausa}
           transacao={editing}
           onClose={() => { setModalOpen(false); setEditing(undefined) }}
           onSaved={handleSaved}
@@ -254,22 +307,42 @@ export function FinanceiroTab({ casoId }: { casoId: string }) {
       )}
 
       <div className="space-y-4">
-        {/* Mini stats */}
-        {transacoes.length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Recebido',  value: totalRecebido, icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' },
-              { label: 'A receber', value: totalPendente, icon: DollarSign,   color: 'text-foreground' },
-              { label: 'Em atraso', value: totalAtraso,   icon: AlertTriangle,color: 'text-destructive' },
-            ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="rounded-lg border bg-card px-4 py-3 flex items-center gap-3">
-                <Icon size={16} className={cn('shrink-0', color)} />
-                <div>
-                  <p className="text-[10px] text-muted-foreground">{label}</p>
-                  <p className={cn('text-sm font-semibold', color)}>{formatCurrency(value)}</p>
-                </div>
+
+        {/* Stats + referência ao valor da causa */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Recebido',      value: totalRecebido, icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'A receber',     value: totalPendente, icon: DollarSign,   color: 'text-foreground' },
+            { label: 'Em atraso',     value: totalAtraso,   icon: AlertTriangle,color: 'text-destructive' },
+            { label: 'Valor da causa',value: valorCausa ?? 0, icon: DollarSign, color: 'text-muted-foreground', muted: true },
+          ].map(({ label, value, icon: Icon, color, muted }) => (
+            <div key={label} className={cn('rounded-lg border bg-card px-4 py-3 flex items-center gap-3', muted && 'opacity-60')}>
+              <Icon size={16} className={cn('shrink-0', color)} />
+              <div>
+                <p className="text-[10px] text-muted-foreground">{label}</p>
+                <p className={cn('text-sm font-semibold', color)}>{formatCurrency(value)}</p>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Barra de progresso lançado vs causa */}
+        {valorCausa && valorCausa > 0 && (
+          <div className="rounded-lg border bg-card px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                Total lançado: <span className="font-medium text-foreground">{formatCurrency(totalLancado)}</span>
+                <span className="text-muted-foreground"> de </span>
+                <span className="font-medium text-foreground">{formatCurrency(valorCausa)}</span>
+              </span>
+              <span className="font-medium text-foreground">{pctCausa.toFixed(1)}%</span>
+            </div>
+            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-500"
+                style={{ width: `${pctCausa}%` }}
+              />
+            </div>
           </div>
         )}
 
