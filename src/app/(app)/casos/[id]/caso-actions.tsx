@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { listarClientes, type Cliente } from '@/lib/supabase/clientes'
 import { listarMembros, type Membro } from '@/lib/supabase/equipe'
-import { atualizarCaso, deletarCaso, type Caso, type CasoInput, type CasoStatus, type CasoArea, type CasoFase } from '@/lib/supabase/casos'
+import { atualizarCaso, deletarCaso, type Caso, type CasoInput, type CasoStatus, type CasoArea, type CasoFase, type TipoProcesso } from '@/lib/supabase/casos'
 
 const AREAS: Array<{ value: CasoArea; label: string }> = [
   { value: 'civil',          label: 'Cível' },
@@ -90,6 +90,7 @@ function CasoFormModal({
     juiz:           caso.juiz           ?? '',
     descricao:      caso.descricao      ?? '',
     valor_causa:    caso.valor_causa    ?? null,
+    tipo_processo:  caso.tipo_processo  ?? null,
     notes:          caso.notes          ?? '',
   })
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -179,10 +180,20 @@ function CasoFormModal({
             </select>
           </F>
 
-          <F label="Número do processo">
-            <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
-              placeholder="0000000-00.0000.0.00.0000" className="h-9 text-[13px] font-mono" />
-          </F>
+          <div className="grid grid-cols-[1fr_160px] gap-3">
+            <F label="Número do processo">
+              <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
+                placeholder="0000000-00.0000.0.00.0000" className="h-9 text-[13px] font-mono" />
+            </F>
+            <F label="Tipo">
+              <select value={form.tipo_processo ?? ''} onChange={e => set({ tipo_processo: (e.target.value as TipoProcesso) || null })}
+                className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
+                <option value="">— Tipo —</option>
+                <option value="eletronico">Eletrônico</option>
+                <option value="fisico">Físico</option>
+              </select>
+            </F>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <F label="Vara / Tribunal">

@@ -14,6 +14,7 @@ export type Cliente = {
   document: string | null
   email: string | null
   phone: string | null
+  cep: string | null
   address: string | null
   city: string | null
   state: string | null
@@ -27,6 +28,7 @@ export type ClienteInput = {
   document?: string
   email?: string
   phone?: string
+  cep?: string
   address?: string
   city?: string
   state?: string
@@ -76,6 +78,7 @@ export async function criarCliente(input: ClienteInput): Promise<Cliente> {
       document:      input.document   || null,
       email:         input.email      || null,
       phone:         input.phone      || null,
+      cep:           input.cep        || null,
       address:       input.address    || null,
       city:          input.city       || null,
       state:         input.state      || null,

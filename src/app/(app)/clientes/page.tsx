@@ -173,6 +173,23 @@ export default function ClientesPage() {
 // ── Modal criar / editar ──────────────────────────────────────────────────────
 const ESTADOS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO']
 
+function maskCpf(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 3) return d
+  if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`
+  if (d.length <= 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`
+  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`
+}
+
+function maskCnpj(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 14)
+  if (d.length <= 2) return d
+  if (d.length <= 5) return `${d.slice(0,2)}.${d.slice(2)}`
+  if (d.length <= 8) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`
+  if (d.length <= 12) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`
+  return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`
+}
+
 function ClienteFormModal({
   cliente, onClose, onSalvo,
 }: {
@@ -187,16 +204,57 @@ function ClienteFormModal({
     document: cliente?.document ?? '',
     email:    cliente?.email    ?? '',
     phone:    cliente?.phone    ?? '',
+    cep:      cliente?.cep      ?? '',
     address:  cliente?.address  ?? '',
     city:     cliente?.city     ?? '',
     state:    cliente?.state    ?? '',
     status:   cliente?.status   ?? 'active',
     notes:    cliente?.notes    ?? '',
   })
+  const [buscandoCep, setBuscandoCep]   = useState(false)
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false)
   const [loading, setLoading] = useState(false)
   const [erro, setErro]       = useState('')
 
   const set = (patch: Partial<ClienteInput>) => setForm(prev => ({ ...prev, ...patch }))
+
+  async function buscarCep(digits: string) {
+    if (digits.length !== 8) return
+    setBuscandoCep(true)
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cep/v2/${digits}`)
+      if (!res.ok) return
+      const data = await res.json()
+      set({
+        address: data.street  || '',
+        city:    data.city    || '',
+        state:   data.state   || '',
+      })
+    } catch {}
+    finally { setBuscandoCep(false) }
+  }
+
+  async function buscarCnpj() {
+    if (form.type !== 'pj') return
+    const digits = (form.document ?? '').replace(/\D/g, '')
+    if (digits.length !== 14) return
+    setBuscandoCnpj(true)
+    try {
+      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+      if (!res.ok) return
+      const data = await res.json()
+      const addr = [data.logradouro, data.numero, data.complemento].filter(Boolean).join(', ')
+      const cepDigits = data.cep ? String(data.cep).replace(/\D/g, '').slice(0, 8) : ''
+      set({
+        name:    data.razao_social || form.name,
+        cep:     cepDigits,
+        address: addr,
+        city:    data.municipio   || '',
+        state:   data.uf          || '',
+      })
+    } catch {}
+    finally { setBuscandoCnpj(false) }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -230,7 +288,7 @@ function ClienteFormModal({
         <form onSubmit={handleSubmit} className="px-6 py-5 grid gap-4">
           <div className="grid grid-cols-2 gap-2">
             {(['pf', 'pj'] as const).map(t => (
-              <button key={t} type="button" onClick={() => set({ type: t })}
+              <button key={t} type="button" onClick={() => set({ type: t, document: '' })}
                 className={cn('h-9 rounded-[5px] border text-[13px] font-medium transition-colors',
                   form.type === t ? 'border-foreground bg-card text-foreground' : 'border-border text-muted-foreground hover:border-muted-foreground')}>
                 {t === 'pf' ? 'Pessoa Física' : 'Pessoa Jurídica'}
@@ -246,9 +304,19 @@ function ClienteFormModal({
 
           <div className="grid grid-cols-2 gap-3">
             <F label={form.type === 'pf' ? 'CPF' : 'CNPJ'}>
-              <Input value={form.document ?? ''} onChange={e => set({ document: e.target.value })}
-                placeholder={form.type === 'pf' ? '000.000.000-00' : '00.000.000/0001-00'}
-                className="h-9 text-[13px]" />
+              <div className="relative">
+                <Input
+                  value={form.document ?? ''}
+                  onChange={e => set({ document: form.type === 'pf' ? maskCpf(e.target.value) : maskCnpj(e.target.value) })}
+                  onBlur={() => { if (form.type === 'pj') buscarCnpj() }}
+                  placeholder={form.type === 'pf' ? '000.000.000-00' : '00.000.000/0001-00'}
+                  maxLength={form.type === 'pf' ? 14 : 18}
+                  className="h-9 text-[13px]"
+                />
+                {buscandoCnpj && (
+                  <Loader2 size={11} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
+              </div>
             </F>
             <F label="Status">
               <select value={form.status} onChange={e => set({ status: e.target.value as ClienteStatus })}
@@ -271,10 +339,30 @@ function ClienteFormModal({
             </F>
           </div>
 
-          <F label="Endereço">
-            <Input value={form.address ?? ''} onChange={e => set({ address: e.target.value })}
-              placeholder="Rua, número, complemento" className="h-9 text-[13px]" />
-          </F>
+          <div className="grid grid-cols-[112px_1fr] gap-3">
+            <F label="CEP">
+              <div className="relative">
+                <Input
+                  value={(form.cep ?? '').length > 5 ? `${(form.cep ?? '').slice(0, 5)}-${(form.cep ?? '').slice(5)}` : (form.cep ?? '')}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 8)
+                    set({ cep: digits })
+                    if (digits.length === 8) buscarCep(digits)
+                  }}
+                  placeholder="00000-000"
+                  className="h-9 text-[13px]"
+                  maxLength={9}
+                />
+                {buscandoCep && (
+                  <Loader2 size={11} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
+              </div>
+            </F>
+            <F label="Endereço">
+              <Input value={form.address ?? ''} onChange={e => set({ address: e.target.value })}
+                placeholder="Rua, número, complemento" className="h-9 text-[13px]" />
+            </F>
+          </div>
 
           <div className="grid grid-cols-[1fr_80px] gap-3">
             <F label="Cidade">

@@ -8,6 +8,7 @@ export type CasoArea =
   | 'empresarial' | 'familia' | 'consumidor' | 'previdenciario'
 export type CasoFase =
   | 'conhecimento' | 'recurso' | 'execucao' | 'cumprimento' | 'extrajudicial' | 'consulta'
+export type TipoProcesso = 'fisico' | 'eletronico'
 
 export type Caso = {
   id: string
@@ -28,6 +29,7 @@ export type Caso = {
   juiz: string | null
   descricao: string | null
   valor_causa: number | null
+  tipo_processo: TipoProcesso | null
   notes: string | null
 }
 
@@ -43,6 +45,7 @@ export type CasoInput = {
   juiz?: string
   descricao?: string
   valor_causa?: number | null
+  tipo_processo?: TipoProcesso | null
   notes?: string
 }
 
@@ -107,6 +110,7 @@ export async function criarCaso(input: CasoInput): Promise<Caso> {
       juiz:           input.juiz           || null,
       descricao:      input.descricao      || null,
       valor_causa:    input.valor_causa    || null,
+      tipo_processo:  input.tipo_processo  || null,
       notes:          input.notes          || null,
     })
     .select()

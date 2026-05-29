@@ -99,7 +99,16 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
                       </div>
                     </div>
                   )}
-                  {!caso.vara && !caso.juiz && (
+                  {caso.tipo_processo && (
+                    <div className="flex items-start gap-2.5">
+                      <FileText size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Tipo de processo</p>
+                        <p className="text-xs">{caso.tipo_processo === 'fisico' ? 'Físico' : 'Eletrônico'}</p>
+                      </div>
+                    </div>
+                  )}
+                  {!caso.vara && !caso.juiz && !caso.tipo_processo && (
                     <p className="text-xs text-muted-foreground">Nenhum detalhe processual cadastrado.</p>
                   )}
                   {caso.valor_causa && caso.valor_causa > 0 && (
