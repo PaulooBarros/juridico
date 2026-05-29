@@ -85,10 +85,20 @@ const config: Config = {
           from: { transform: 'translateX(-100%)' },
           to:   { transform: 'translateX(0)' },
         },
+        'slide-in-from-right': {
+          from: { transform: 'translateX(100%)' },
+          to:   { transform: 'translateX(0)' },
+        },
+        'slide-out-to-right': {
+          from: { transform: 'translateX(0)' },
+          to:   { transform: 'translateX(100%)' },
+        },
       },
       animation: {
-        'fade-in':   'fade-in 0.2s cubic-bezier(.2,.6,.2,1)',
-        'slide-left':'slide-left 0.25s ease-out',
+        'fade-in':              'fade-in 0.2s cubic-bezier(.2,.6,.2,1)',
+        'slide-left':           'slide-left 0.25s ease-out',
+        'slide-in-from-right':  'slide-in-from-right 0.3s cubic-bezier(.2,.6,.2,1)',
+        'slide-out-to-right':   'slide-out-to-right 0.25s cubic-bezier(.2,.6,.2,1)',
       },
     },
   },

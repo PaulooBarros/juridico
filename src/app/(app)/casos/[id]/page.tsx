@@ -10,6 +10,8 @@ import { formatArea, formatPhase, formatDate, formatCurrency } from '@/lib/utils
 import { CasoActions } from './caso-actions'
 import { PrazosTab } from './prazos-tab'
 import { DocumentosTab } from './documentos-tab'
+import { TarefasTab } from './tarefas-tab'
+import { FinanceiroTab } from './financeiro-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerAuthClient()
@@ -59,7 +61,9 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
           <TabsTrigger value="prazos">Prazos</TabsTrigger>
+          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
         </TabsList>
 
@@ -97,7 +101,16 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
                       </div>
                     </div>
                   )}
-                  {!caso.vara && !caso.juiz && (
+                  {caso.tipo_processo && (
+                    <div className="flex items-start gap-2.5">
+                      <FileText size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Tipo de processo</p>
+                        <p className="text-xs">{caso.tipo_processo === 'fisico' ? 'Físico' : 'Eletrônico'}</p>
+                      </div>
+                    </div>
+                  )}
+                  {!caso.vara && !caso.juiz && !caso.tipo_processo && (
                     <p className="text-xs text-muted-foreground">Nenhum detalhe processual cadastrado.</p>
                   )}
                   {caso.valor_causa && caso.valor_causa > 0 && (
@@ -140,6 +153,20 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
                 </Card>
               )}
 
+              {(caso as any).responsavel_nome && (
+                <Card>
+                  <CardHeader><CardTitle>Responsável</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px] font-bold">
+                        {(caso as any).responsavel_nome.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <span className="text-xs font-medium">{(caso as any).responsavel_nome}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardHeader><CardTitle>Histórico</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
@@ -154,6 +181,20 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Tarefas */}
+        <TabsContent value="tarefas">
+          <div className="mt-4">
+            <TarefasTab casoId={params.id} />
+          </div>
+        </TabsContent>
+
+        {/* Financeiro */}
+        <TabsContent value="financeiro">
+          <div className="mt-4">
+            <FinanceiroTab casoId={params.id} valorCausa={caso.valor_causa} />
           </div>
         </TabsContent>
 

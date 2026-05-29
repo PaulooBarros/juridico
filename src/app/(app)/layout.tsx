@@ -1,7 +1,9 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
+import { OnboardingHandler } from '@/components/onboarding/onboarding-handler'
+import { GlobalSearch } from '@/components/search/global-search'
 import { usePathname } from 'next/navigation'
 
 const COLLAPSED_WIDTH = 56
@@ -41,9 +43,10 @@ function getPageMeta(pathname: string) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
-  const [collapsed,   setCollapsed]   = useState(false)
-  const [mobileOpen,  setMobileOpen]  = useState(false)
-  const [isMobile,    setIsMobile]    = useState(false)
+  const [collapsed,     setCollapsed]     = useState(false)
+  const [mobileOpen,    setMobileOpen]    = useState(false)
+  const [isMobile,      setIsMobile]      = useState(false)
+  const [searchOpen,    setSearchOpen]    = useState(false)
 
   useEffect(() => {
     function check() {
@@ -56,6 +59,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', check)
   }, [])
 
+  // Atalho Ctrl+K / Cmd+K
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(o => !o)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
+
   // Fecha drawer ao navegar
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
@@ -66,6 +81,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      <Suspense>
+        <OnboardingHandler />
+      </Suspense>
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(c => !c)}
@@ -78,6 +97,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         action={action}
         sidebarWidth={sidebarWidth}
         onMenuOpen={() => setMobileOpen(o => !o)}
+        onSearchOpen={() => setSearchOpen(true)}
       />
       <main
         className="min-h-screen pt-[49px] transition-all duration-200"
