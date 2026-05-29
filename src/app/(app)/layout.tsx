@@ -1,7 +1,8 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
+import { OnboardingHandler } from '@/components/onboarding/onboarding-handler'
 import { usePathname } from 'next/navigation'
 
 const COLLAPSED_WIDTH = 56
@@ -66,6 +67,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
+      <Suspense>
+        <OnboardingHandler />
+      </Suspense>
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(c => !c)}

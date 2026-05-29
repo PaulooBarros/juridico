@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 const MAX_SIZE = 2 * 1024 * 1024 // 2 MB
 const ALLOWED  = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const userId   = session.user.id
-  const supabase = createClient(userId)
+  const supabase = createServiceClient()
 
   // Busca escritório do usuário
   const { data: membro } = await supabase
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   if (uploadError) {
     console.error('[upload/logo]', uploadError)
-    return NextResponse.json({ error: 'Erro ao fazer upload' }, { status: 500 })
+    return NextResponse.json({ error: uploadError.message }, { status: 500 })
   }
 
   const { data: { publicUrl } } = supabase.storage.from('imagens').getPublicUrl(path)

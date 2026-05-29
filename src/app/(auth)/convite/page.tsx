@@ -72,7 +72,7 @@ function ConviteContent() {
       return
     }
     setStatus('aceito')
-    setTimeout(() => router.push('/dashboard'), 2000)
+    setTimeout(() => router.push('/dashboard?welcome=true'), 2000)
   }
 
   const next = `/convite?token=${token}`
@@ -160,8 +160,8 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-8 py-16">
       <Link href="/landing" className="flex items-center gap-2 mb-10">
-        <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">V</div>
-        <span className="font-serif font-medium text-[15px]">Vetor <em className="text-primary not-italic">Jurídico</em></span>
+        <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">L</div>
+        <span className="font-serif font-medium text-[15px]">Leea</span>
       </Link>
       <div className="w-full max-w-[380px] text-center flex flex-col items-center">
         {children}

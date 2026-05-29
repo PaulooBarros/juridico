@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { randomUUID } from 'crypto'
 
 const MAX_SIZE   = 10 * 1024 * 1024  // 10 MB por arquivo
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const userId   = session.user.id
-  const supabase = createClient(userId)
+  const supabase = createServiceClient()
 
   // Busca escritório do usuário
   const { data: membro } = await supabase
