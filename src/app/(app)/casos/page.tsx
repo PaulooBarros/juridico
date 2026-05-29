@@ -120,8 +120,8 @@ export default function CasosPage() {
       {/* Table */}
       <div className="rounded-lg border overflow-hidden bg-card overflow-x-auto">
         <div className="min-w-[680px]">
-        <div className="grid grid-cols-[2fr_1.5fr_110px_110px_100px_72px] gap-0 border-b bg-muted/30">
-          {['Caso / Número', 'Cliente', 'Área', 'Fase', 'Status', ''].map((h, i) => (
+        <div className="grid grid-cols-[2fr_1.2fr_1fr_110px_100px_72px] gap-0 border-b bg-muted/30">
+          {['Caso / Número', 'Cliente', 'Responsável', 'Área', 'Status', ''].map((h, i) => (
             <div key={i} className="px-4 py-2.5 text-xs font-semibold text-muted-foreground">{h}</div>
           ))}
         </div>
@@ -139,7 +139,7 @@ export default function CasosPage() {
         ) : (
           <div className="divide-y">
             {filtered.map(caso => (
-              <div key={caso.id} className="grid grid-cols-[2fr_1.5fr_110px_110px_100px_72px] gap-0 hover:bg-muted/30 transition-colors group">
+              <div key={caso.id} className="grid grid-cols-[2fr_1.2fr_1fr_110px_100px_72px] gap-0 hover:bg-muted/30 transition-colors group">
                 <Link href={`/casos/${caso.id}`} className="px-4 py-3">
                   <p className="text-xs font-medium truncate group-hover:text-primary transition-colors">{caso.titulo}</p>
                   {caso.numero && <p className="text-[10px] text-muted-foreground font-mono mt-0.5 truncate">{caso.numero}</p>}
@@ -148,10 +148,19 @@ export default function CasosPage() {
                   <p className="text-xs text-muted-foreground truncate">{caso.cliente_nome ?? '—'}</p>
                 </Link>
                 <Link href={`/casos/${caso.id}`} className="px-4 py-3 flex items-center">
-                  <Badge variant="muted" className="text-[10px]">{formatArea(caso.area)}</Badge>
+                  {caso.responsavel_nome ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold shrink-0">
+                        {caso.responsavel_nome.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{caso.responsavel_nome.split(' ')[0]}</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">—</p>
+                  )}
                 </Link>
                 <Link href={`/casos/${caso.id}`} className="px-4 py-3 flex items-center">
-                  <span className="text-xs text-muted-foreground">{formatPhase(caso.fase)}</span>
+                  <Badge variant="muted" className="text-[10px]">{formatArea(caso.area)}</Badge>
                 </Link>
                 <Link href={`/casos/${caso.id}`} className="px-4 py-3 flex items-center">
                   <CaseStatusBadge status={caso.status} />
@@ -211,24 +220,27 @@ function CasoFormModal({
 }) {
   const editMode = !!caso
   const [form, setForm] = useState<CasoInput>({
-    cliente_id:  caso?.cliente_id  ?? '',
-    numero:      caso?.numero      ?? '',
-    titulo:      caso?.titulo      ?? '',
-    area:        caso?.area        ?? 'civil',
-    fase:        caso?.fase        ?? 'conhecimento',
-    status:      caso?.status      ?? 'active',
-    vara:        caso?.vara        ?? '',
-    juiz:        caso?.juiz        ?? '',
-    descricao:   caso?.descricao   ?? '',
-    valor_causa: caso?.valor_causa ?? null,
-    notes:       caso?.notes       ?? '',
+    cliente_id:     caso?.cliente_id     ?? '',
+    responsavel_id: caso?.responsavel_id ?? '',
+    numero:         caso?.numero         ?? '',
+    titulo:         caso?.titulo         ?? '',
+    area:           caso?.area           ?? 'civil',
+    fase:           caso?.fase           ?? 'conhecimento',
+    status:         caso?.status         ?? 'active',
+    vara:           caso?.vara           ?? '',
+    juiz:           caso?.juiz           ?? '',
+    descricao:      caso?.descricao      ?? '',
+    valor_causa:    caso?.valor_causa    ?? null,
+    notes:          caso?.notes          ?? '',
   })
   const [clientes, setClientes] = useState<Cliente[]>([])
-  const [loading, setLoading]   = useState(false)
-  const [erro, setErro]         = useState('')
+  const [membros,  setMembros]  = useState<any[]>([])
+  const [loading,  setLoading]  = useState(false)
+  const [erro,     setErro]     = useState('')
 
   useEffect(() => {
     listarClientes().then(setClientes).catch(() => {})
+    import('@/lib/supabase/equipe').then(m => m.listarMembros()).then(setMembros).catch(() => {})
   }, [])
 
   const set = (patch: Partial<CasoInput>) => setForm(prev => ({ ...prev, ...patch }))
@@ -304,6 +316,14 @@ function CasoFormModal({
               </select>
             </F>
           </div>
+
+          <F label="Responsável">
+            <select value={form.responsavel_id ?? ''} onChange={e => set({ responsavel_id: e.target.value || null })}
+              className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
+              <option value="">— Sem responsável —</option>
+              {membros.map((m: any) => <option key={m.user_id} value={m.user_id}>{m.nome}</option>)}
+            </select>
+          </F>
 
           <F label="Número do processo">
             <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}

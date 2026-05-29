@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { listarClientes, type Cliente } from '@/lib/supabase/clientes'
+import { listarMembros, type Membro } from '@/lib/supabase/equipe'
 import { atualizarCaso, deletarCaso, type Caso, type CasoInput, type CasoStatus, type CasoArea, type CasoFase } from '@/lib/supabase/casos'
 
 const AREAS: Array<{ value: CasoArea; label: string }> = [
@@ -78,23 +79,28 @@ function CasoFormModal({
   onSalvo: () => void
 }) {
   const [form, setForm] = useState<CasoInput>({
-    cliente_id:  caso.cliente_id  ?? '',
-    numero:      caso.numero      ?? '',
-    titulo:      caso.titulo      ?? '',
-    area:        caso.area        ?? 'civil',
-    fase:        caso.fase        ?? 'conhecimento',
-    status:      caso.status      ?? 'active',
-    vara:        caso.vara        ?? '',
-    juiz:        caso.juiz        ?? '',
-    descricao:   caso.descricao   ?? '',
-    valor_causa: caso.valor_causa ?? null,
-    notes:       caso.notes       ?? '',
+    cliente_id:     caso.cliente_id     ?? '',
+    responsavel_id: caso.responsavel_id ?? '',
+    numero:         caso.numero         ?? '',
+    titulo:         caso.titulo         ?? '',
+    area:           caso.area           ?? 'civil',
+    fase:           caso.fase           ?? 'conhecimento',
+    status:         caso.status         ?? 'active',
+    vara:           caso.vara           ?? '',
+    juiz:           caso.juiz           ?? '',
+    descricao:      caso.descricao      ?? '',
+    valor_causa:    caso.valor_causa    ?? null,
+    notes:          caso.notes          ?? '',
   })
   const [clientes, setClientes] = useState<Cliente[]>([])
-  const [loading, setLoading]   = useState(false)
-  const [erro, setErro]         = useState('')
+  const [membros,  setMembros]  = useState<Membro[]>([])
+  const [loading,  setLoading]  = useState(false)
+  const [erro,     setErro]     = useState('')
 
-  useEffect(() => { listarClientes().then(setClientes).catch(() => {}) }, [])
+  useEffect(() => {
+    listarClientes().then(setClientes).catch(() => {})
+    listarMembros().then(setMembros).catch(() => {})
+  }, [])
 
   const set = (patch: Partial<CasoInput>) => setForm(prev => ({ ...prev, ...patch }))
 
@@ -164,6 +170,14 @@ function CasoFormModal({
               </select>
             </F>
           </div>
+
+          <F label="Responsável">
+            <select value={form.responsavel_id ?? ''} onChange={e => set({ responsavel_id: e.target.value || null })}
+              className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
+              <option value="">— Sem responsável —</option>
+              {membros.map(m => <option key={m.user_id} value={m.user_id}>{m.nome}</option>)}
+            </select>
+          </F>
 
           <F label="Número do processo">
             <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}

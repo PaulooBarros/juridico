@@ -140,6 +140,20 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
                 </Card>
               )}
 
+              {(caso as any).responsavel_nome && (
+                <Card>
+                  <CardHeader><CardTitle>Responsável</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px] font-bold">
+                        {(caso as any).responsavel_nome.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <span className="text-xs font-medium">{(caso as any).responsavel_nome}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardHeader><CardTitle>Histórico</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
