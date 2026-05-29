@@ -1,10 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil, Trash2, X } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetFooter } from '@/components/ui/sheet'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { listarClientes, type Cliente } from '@/lib/supabase/clientes'
 import { listarMembros, type Membro } from '@/lib/supabase/equipe'
@@ -119,115 +122,123 @@ function CasoFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-[10px] w-full max-w-[580px] max-h-[90vh] overflow-y-auto shadow-xl">
+    <Sheet open onOpenChange={open => { if (!open) onClose() }}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Editar caso</SheetTitle>
+        </SheetHeader>
 
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="font-serif text-[18px] font-medium">Editar caso</h2>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-[5px] text-muted-foreground hover:bg-accent transition-colors">
-            <X size={15} />
-          </button>
-        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <SheetBody className="space-y-4">
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 grid gap-4">
-          <F label="Título *">
-            <Input value={form.titulo} onChange={e => set({ titulo: e.target.value })}
-              placeholder="Ex: Ação de Cobrança — Contrato de Empreitada"
-              className="h-9 text-[13px]" />
-          </F>
-
-          <div className="grid grid-cols-2 gap-3">
-            <F label="Área *">
-              <select value={form.area} onChange={e => set({ area: e.target.value as CasoArea })}
-                className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
-                {AREAS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-              </select>
+            <Sec title="Caso" />
+            <F label="Título *">
+              <Input value={form.titulo} onChange={e => set({ titulo: e.target.value })}
+                placeholder="Ex: Ação de Cobrança — Contrato de Empreitada"
+                className="h-9 text-[13px]" />
             </F>
-            <F label="Fase">
-              <select value={form.fase} onChange={e => set({ fase: e.target.value as CasoFase })}
-                className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
-                {FASES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Área *">
+                <Select value={form.area} onValueChange={v => set({ area: v as CasoArea })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {AREAS.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Fase">
+                <Select value={form.fase} onValueChange={v => set({ fase: v as CasoFase })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {FASES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </F>
+            </div>
+
+            <Sec title="Processo" />
+            <div className="grid grid-cols-[1fr_148px] gap-3">
+              <F label="Número">
+                <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
+                  placeholder="0000000-00.0000.0.00.0000" className="h-9 text-[13px] font-mono" />
+              </F>
+              <F label="Tipo">
+                <Select value={form.tipo_processo ?? '_none_'} onValueChange={v => set({ tipo_processo: v === '_none_' ? null : v as TipoProcesso })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none_">—</SelectItem>
+                    <SelectItem value="eletronico">Eletrônico</SelectItem>
+                    <SelectItem value="fisico">Físico</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Vara / Tribunal">
+                <Input value={form.vara ?? ''} onChange={e => set({ vara: e.target.value })}
+                  placeholder="5ª Vara Cível — TJSP" className="h-9 text-[13px]" />
+              </F>
+              <F label="Juiz">
+                <Input value={form.juiz ?? ''} onChange={e => set({ juiz: e.target.value })}
+                  placeholder="Nome do magistrado" className="h-9 text-[13px]" />
+              </F>
+            </div>
+
+            <Sec title="Vínculos" />
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Status">
+                <Select value={form.status} onValueChange={v => set({ status: v as CasoStatus })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="suspended">Suspenso</SelectItem>
+                    <SelectItem value="closed">Encerrado</SelectItem>
+                    <SelectItem value="archived">Arquivado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Cliente">
+                <Select value={form.cliente_id || '_none_'} onValueChange={v => set({ cliente_id: v === '_none_' ? '' : v })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="— Sem cliente —" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none_">— Sem cliente —</SelectItem>
+                    {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </F>
+            </div>
+            <F label="Responsável">
+              <Select value={form.responsavel_id || '_none_'} onValueChange={v => set({ responsavel_id: v === '_none_' ? null : v })}>
+                <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="— Sem responsável —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">— Sem responsável —</SelectItem>
+                  {membros.map(m => <SelectItem key={m.user_id} value={m.user_id}>{m.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </F>
-          </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <F label="Status">
-              <select value={form.status} onChange={e => set({ status: e.target.value as CasoStatus })}
-                className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
-                <option value="active">Ativo</option>
-                <option value="pending">Pendente</option>
-                <option value="suspended">Suspenso</option>
-                <option value="closed">Encerrado</option>
-                <option value="archived">Arquivado</option>
-              </select>
+            <Sec title="Financeiro" />
+            <F label="Valor da causa (R$)">
+              <Input type="number" min="0" step="0.01" value={form.valor_causa ?? ''}
+                onChange={e => set({ valor_causa: e.target.value ? parseFloat(e.target.value) : null })}
+                placeholder="0,00" className="h-9 text-[13px]" />
             </F>
-            <F label="Cliente">
-              <select value={form.cliente_id ?? ''} onChange={e => set({ cliente_id: e.target.value || undefined })}
-                className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
-                <option value="">— Sem cliente —</option>
-                {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+
+            <Sec title="Notas" />
+            <F label="Descrição">
+              <Textarea value={form.descricao ?? ''} onChange={e => set({ descricao: e.target.value })}
+                rows={2} className="text-[13px] resize-none" placeholder="Resumo do caso…" />
             </F>
-          </div>
-
-          <F label="Responsável">
-            <select value={form.responsavel_id ?? ''} onChange={e => set({ responsavel_id: e.target.value || null })}
-              className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
-              <option value="">— Sem responsável —</option>
-              {membros.map(m => <option key={m.user_id} value={m.user_id}>{m.nome}</option>)}
-            </select>
-          </F>
-
-          <div className="grid grid-cols-[1fr_160px] gap-3">
-            <F label="Número do processo">
-              <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
-                placeholder="0000000-00.0000.0.00.0000" className="h-9 text-[13px] font-mono" />
+            <F label="Observações internas">
+              <Textarea value={form.notes ?? ''} onChange={e => set({ notes: e.target.value })}
+                rows={2} className="text-[13px] resize-none" placeholder="Notas internas…" />
             </F>
-            <F label="Tipo">
-              <select value={form.tipo_processo ?? ''} onChange={e => set({ tipo_processo: (e.target.value as TipoProcesso) || null })}
-                className="h-9 px-3 text-[13px] bg-card border border-border rounded-[5px] focus:outline-none focus:border-primary">
-                <option value="">— Tipo —</option>
-                <option value="eletronico">Eletrônico</option>
-                <option value="fisico">Físico</option>
-              </select>
-            </F>
-          </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <F label="Vara / Tribunal">
-              <Input value={form.vara ?? ''} onChange={e => set({ vara: e.target.value })}
-                placeholder="Ex: 5ª Vara Cível — TJSP" className="h-9 text-[13px]" />
-            </F>
-            <F label="Juiz">
-              <Input value={form.juiz ?? ''} onChange={e => set({ juiz: e.target.value })}
-                placeholder="Nome do magistrado" className="h-9 text-[13px]" />
-            </F>
-          </div>
+          </SheetBody>
 
-          <F label="Valor da causa (R$)">
-            <Input
-              type="number" min="0" step="0.01"
-              value={form.valor_causa ?? ''}
-              onChange={e => set({ valor_causa: e.target.value ? parseFloat(e.target.value) : null })}
-              placeholder="0,00" className="h-9 text-[13px]"
-            />
-          </F>
-
-          <F label="Descrição">
-            <Textarea value={form.descricao ?? ''} onChange={e => set({ descricao: e.target.value })}
-              rows={2} className="text-[13px] resize-none" placeholder="Resumo do caso…" />
-          </F>
-
-          <F label="Observações internas">
-            <Textarea value={form.notes ?? ''} onChange={e => set({ notes: e.target.value })}
-              rows={2} className="text-[13px] resize-none" placeholder="Notas internas…" />
-          </F>
-
-          {erro && <p className="text-[12px] text-destructive">{erro}</p>}
-
-          <div className="flex justify-end gap-2 pt-1">
+          <SheetFooter>
+            {erro && <p className="text-[12px] text-destructive mr-auto">{erro}</p>}
             <button type="button" onClick={onClose}
               className="px-4 h-9 border border-border rounded-[5px] text-[13px] text-muted-foreground hover:bg-accent transition-colors">
               Cancelar
@@ -236,24 +247,25 @@ function CasoFormModal({
               className="px-4 h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-60">
               {loading ? 'Salvando…' : 'Salvar alterações'}
             </button>
-          </div>
+          </SheetFooter>
         </form>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 
 function ConfirmarExclusao({ titulo, onCancelar, onConfirmar }: { titulo: string; onCancelar: () => void; onConfirmar: () => void }) {
   const [loading, setLoading] = useState(false)
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancelar} />
-      <div className="relative bg-card border border-border rounded-[10px] w-full max-w-[380px] p-6 shadow-xl">
-        <h2 className="font-serif text-[18px] font-medium mb-2">Excluir caso</h2>
-        <p className="text-[13px] text-muted-foreground mb-6">
-          Tem certeza que deseja excluir <strong className="text-foreground">{titulo}</strong>? Esta ação não pode ser desfeita.
-        </p>
-        <div className="flex justify-end gap-2">
+    <Dialog open onOpenChange={open => { if (!open) onCancelar() }}>
+      <DialogContent className="max-w-[380px]">
+        <DialogHeader>
+          <DialogTitle>Excluir caso</DialogTitle>
+          <DialogDescription>
+            Tem certeza que deseja excluir <strong className="text-foreground">{titulo}</strong>? Esta ação não pode ser desfeita.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
           <button onClick={onCancelar}
             className="px-4 h-9 border border-border rounded-[5px] text-[13px] text-muted-foreground hover:bg-accent transition-colors">
             Cancelar
@@ -262,17 +274,26 @@ function ConfirmarExclusao({ titulo, onCancelar, onConfirmar }: { titulo: string
             className="px-4 h-9 bg-destructive text-destructive-foreground rounded-[5px] text-[13px] font-medium hover:bg-destructive/90 transition-colors disabled:opacity-60">
             {loading ? 'Excluindo…' : 'Excluir'}
           </button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-[12px] font-medium text-muted-foreground">{label}</Label>
+      {label && <Label className="text-[12px] font-medium text-muted-foreground">{label}</Label>}
       {children}
+    </div>
+  )
+}
+
+function Sec({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{title}</p>
+      <div className="h-px flex-1 bg-border" />
     </div>
   )
 }
