@@ -24,6 +24,9 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",
+    "@tiptap/pm": "^3.23.6",
+    "@tiptap/react": "^3.23.6",
+    "@tiptap/starter-kit": "^3.23.6",
     "better-auth": "^1.6.11",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -36,6 +39,7 @@
     "pg": "^8.21.0",
     "react": "^18",
     "react-dom": "^18",
+    "recharts": "^3.8.1",
     "resend": "^6.12.4",
     "tailwind-merge": "^2.4.0"
   },

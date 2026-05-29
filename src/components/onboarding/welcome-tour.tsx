@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Briefcase, CalendarDays, FileText, Users, UserCircle, X, ArrowRight, CheckCircle2,
+  Briefcase, CalendarDays, FileText, FileStack,
+  DollarSign, Users, UserCircle, X, ArrowRight, CheckCircle2, Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -10,32 +11,39 @@ const STEPS = [
   {
     icon:  Briefcase,
     title: 'Casos',
-    desc:  'Todos os processos do escritório em um lugar. Clique em qualquer caso para ver prazos, documentos, tarefas e histórico.',
+    desc:  'Cada caso tem suas próprias abas de prazos, tarefas, documentos e financeiro. Você pode ser designado como responsável e acompanhar só o que é seu.',
     href:  '/casos',
   },
   {
     icon:  CalendarDays,
     title: 'Calendário e prazos',
-    desc:  'Prazos e audiências aparecem automaticamente no calendário. Você também recebe notificações quando uma data se aproxima.',
+    desc:  'Prazos e audiências aparecem automaticamente no calendário. Você recebe notificações 7 dias, 3 dias e no dia do vencimento — sem precisar configurar nada.',
     href:  '/calendario',
+  },
+  {
+    icon:  FileStack,
+    title: 'Modelos de documentos',
+    desc:  'Crie e reutilize modelos de petições, contratos, procurações e notificações com variáveis dinâmicas. Preencha os campos e copie o texto finalizado em segundos.',
+    href:  '/modelos',
+  },
+  {
+    icon:  DollarSign,
+    title: 'Financeiro',
+    desc:  'Acompanhe honorários, despesas e reembolsos do escritório. Cada caso também tem sua própria aba financeira para rastrear valores por processo.',
+    href:  '/financeiro',
   },
   {
     icon:  FileText,
     title: 'Documentos',
-    desc:  'Envie PDFs diretamente nos casos e clientes. Tudo organizado por tipo, com visualização inline sem precisar baixar.',
+    desc:  'Envie PDFs diretamente nos casos e clientes — até 10 MB por arquivo. Visualização inline sem precisar baixar. O escritório tem 100 MB de espaço.',
     href:  '/documentos',
-  },
-  {
-    icon:  Users,
-    title: 'Equipe',
-    desc:  'Veja os membros do escritório, seus papéis e como entrar em contato. O gestor pode convidar novos membros por aqui.',
-    href:  '/equipe',
   },
   {
     icon:  UserCircle,
     title: 'Seu perfil',
-    desc:  'Adicione sua foto, número OAB e áreas de especialidade. Isso aparece para toda a equipe e nos documentos.',
+    desc:  'Adicione sua foto, número OAB e áreas de especialidade. Isso aparece para toda a equipe. Use Ctrl+K em qualquer tela para buscar casos, clientes e documentos instantaneamente.',
     href:  '/perfil',
+    tip:   true,
   },
 ]
 
@@ -82,7 +90,7 @@ export function WelcomeTour({ nomeEscritorio, role, onClose }: WelcomeTourProps)
             Como <span className="text-foreground font-medium">{ROLE_LABEL[role] ?? role}</span>
           </p>
           <p className="text-sm text-muted-foreground mb-8 max-w-xs mx-auto leading-relaxed">
-            Em menos de 2 minutos você vai conhecer as principais ferramentas do sistema.
+            6 telas, menos de 2 minutos. Você vai sair daqui sabendo navegar em tudo.
           </p>
           <div className="flex flex-col gap-2">
             <button
@@ -131,6 +139,12 @@ export function WelcomeTour({ nomeEscritorio, role, onClose }: WelcomeTourProps)
         <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
           {current.desc}
         </p>
+        {current.tip && (
+          <div className="mt-4 flex items-center justify-center gap-2 px-3 py-2 bg-muted/60 rounded-lg text-[11px] text-muted-foreground mx-auto max-w-[220px]">
+            <Search size={11} className="shrink-0" />
+            <span><kbd className="font-mono bg-background border border-border rounded px-1 py-0.5 text-[10px]">Ctrl+K</kbd> busca global em qualquer tela</span>
+          </div>
+        )}
       </div>
 
       {/* Ações */}

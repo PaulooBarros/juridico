@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { ArrowRight, Briefcase, Clock, DollarSign, AlertTriangle } from 'lucide-react'
+import { ArrowRight, Briefcase, Clock, DollarSign } from 'lucide-react'
 import { StatsCard } from '@/features/shared/stats-card'
 import { CaseStatusBadge } from '@/features/shared/status-badge'
 import { EmptyState } from '@/features/shared/empty-state'
+import { RevenueChart, type RevenueDataPoint } from '@/components/dashboard/revenue-chart'
+import { CasesAreaChart, type AreaDataPoint } from '@/components/dashboard/cases-area-chart'
 import { createClient } from '@/lib/supabase/server'
-// createClient(userId) injeta x-user-id → ativa RLS (ou usa service role se disponível)
 import { formatArea, formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { auth } from '@/lib/auth'
@@ -72,9 +73,12 @@ export default async function DashboardPage() {
     )
   }
 
-  // ── 2. Data de hoje (ISO sem hora) ────────────────────────────────────────
-  const today    = new Date().toISOString().split('T')[0]
-  const em7dias  = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  // ── 2. Datas de referência ────────────────────────────────────────────────
+  const today      = new Date().toISOString().split('T')[0]
+  const em7dias    = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const ha6meses   = new Date(new Date().setMonth(new Date().getMonth() - 5))
+  ha6meses.setDate(1)
+  const ha6mesesISO = ha6meses.toISOString().split('T')[0]
 
   // ── 3. Todas as queries paralelas, filtradas por escritorio_id ────────────
   const [
@@ -84,6 +88,8 @@ export default async function DashboardPage() {
     { data: casosRecentes },
     { data: prazosData },
     { data: financeiroData },
+    { data: receitaData },
+    { data: casosParaArea },
   ] = await Promise.all([
     supabase
       .from('casos')
@@ -122,13 +128,32 @@ export default async function DashboardPage() {
       .order('data_prazo', { ascending: true })
       .limit(5),
 
-    // Transações pendentes/atrasadas — sem limit para somar corretamente
+    // Transações a receber (honorários/reembolsos/adiantamentos pendentes ou atrasados)
+    // Despesas são saída de caixa — não entram no "a receber"
     supabase
       .from('transacoes')
       .select('id, descricao, valor, status, vencimento, tipo, clientes(name)')
       .eq('escritorio_id', escritorioId)
       .in('status', ['pending', 'overdue'])
+      .in('tipo', ['honorario', 'reembolso', 'adiantamento'])
       .order('vencimento', { ascending: true }),
+
+    // Receita dos últimos 6 meses — apenas entradas (não despesas)
+    supabase
+      .from('transacoes')
+      .select('valor, pago_em')
+      .eq('escritorio_id', escritorioId)
+      .eq('status', 'paid')
+      .in('tipo', ['honorario', 'reembolso', 'adiantamento'])
+      .not('pago_em', 'is', null)
+      .gte('pago_em', ha6mesesISO),
+
+    // Casos ativos para gráfico de área
+    supabase
+      .from('casos')
+      .select('area')
+      .eq('escritorio_id', escritorioId)
+      .eq('status', 'active'),
   ])
 
   // ── 4. Processar dados ────────────────────────────────────────────────────
@@ -157,6 +182,33 @@ export default async function DashboardPage() {
 
   const totalFinanceiro = totalAReceber + totalAtrasado
 
+  // ── Dados para gráfico de receita (últimos 6 meses) ───────────────────────
+  const revenueChartData: RevenueDataPoint[] = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() - (5 - i))
+    return {
+      mes: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      total: 0,
+    }
+  })
+  for (const t of receitaData ?? []) {
+    if (!t.pago_em) continue
+    const key = (t.pago_em as string).slice(0, 7)
+    const ponto = revenueChartData.find(p => (p as any).key === key)
+    if (ponto) ponto.total += Number(t.valor)
+  }
+
+  // ── Dados para gráfico de casos por área ─────────────────────────────────
+  const areaCounts: Record<string, number> = {}
+  for (const c of casosParaArea ?? []) {
+    areaCounts[c.area] = (areaCounts[c.area] ?? 0) + 1
+  }
+  const areaChartData: AreaDataPoint[] = Object.entries(areaCounts)
+    .map(([area, count]) => ({ area: formatArea(area as any), count }))
+    .sort((a, b) => b.count - a.count)
+
   return (
     <div className="space-y-6 animate-fade-in">
 
@@ -184,6 +236,33 @@ export default async function DashboardPage() {
           variant={totalAtrasado > 0 ? 'warning' : undefined}
           description={totalAtrasado > 0 ? `${formatCurrency(totalAtrasado)} em atraso` : 'sem atrasos'}
         />
+      </div>
+
+      {/* ── Gráficos ─────────────────────────────────────────────────────── */}
+      <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+
+        {/* Receita mensal */}
+        <div className="bg-card border border-border rounded-[8px] overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+            <h2 className="font-serif text-[16px] font-medium">Receita Recebida</h2>
+            <span className="text-[11px] text-muted-foreground">últimos 6 meses</span>
+          </div>
+          <div className="px-4 py-4">
+            <RevenueChart data={revenueChartData} />
+          </div>
+        </div>
+
+        {/* Casos por área */}
+        <div className="bg-card border border-border rounded-[8px] overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+            <h2 className="font-serif text-[16px] font-medium">Casos por Área</h2>
+            <span className="text-[11px] text-muted-foreground">ativos</span>
+          </div>
+          <div className="px-4 py-4">
+            <CasesAreaChart data={areaChartData} />
+          </div>
+        </div>
+
       </div>
 
       {/* ── Casos recentes ───────────────────────────────────────────────── */}

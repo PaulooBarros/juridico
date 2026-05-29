@@ -22,6 +22,8 @@ Está em **beta privado** — acesso fechado com convite, sem cobrança ainda.
 | Google Calendar | googleapis |
 | Deploy | Vercel |
 | Icons | Lucide React |
+| Editor de texto rico | TipTap (`@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`) |
+| Gráficos | Recharts (mesma base do shadcn/ui charts) |
 
 **Importante sobre autenticação:** O projeto usa **Better Auth**, não o Supabase Auth nativo. Isso afeta como o RLS funciona — `auth.uid()` retorna NULL. O RLS usa uma função customizada `get_user_escritorio_ids()` que lê o header `x-user-id` injetado pelo client Supabase. O service role key no servidor bypassa o RLS completamente.
 
@@ -35,6 +37,7 @@ src/
 │   ├── (app)/              # Área autenticada
 │   │   ├── dashboard/
 │   │   ├── casos/
+│   │   │   └── [id]/       # Detalhe: prazos-tab, tarefas-tab, documentos-tab, financeiro-tab
 │   │   ├── clientes/
 │   │   ├── calendario/
 │   │   ├── documentos/
@@ -45,7 +48,12 @@ src/
 │   │   ├── escritorio/
 │   │   ├── configuracoes/
 │   │   ├── planos/
-│   │   └── modelos/        # ainda usa mock
+│   │   └── modelos/
+│   │       ├── page.tsx        # Lista de modelos (grid)
+│   │       ├── novo/           # Criar novo modelo (editor TipTap)
+│   │       └── [id]/
+│   │           ├── page.tsx    # Editar modelo (editor TipTap + metadados)
+│   │           └── usar/       # Preencher variáveis + prévia ao vivo + copiar
 │   ├── (auth)/             # Login, cadastro, convite
 │   ├── (marketing)/        # Landing page
 │   └── api/                # API Routes
@@ -64,14 +72,27 @@ src/
 │   │   ├── financeiro.ts
 │   │   ├── equipe.ts
 │   │   ├── escritorio.ts
-│   │   └── documentos.ts
+│   │   ├── documentos.ts
+│   │   ├── modelos.ts      # CRUD + docToPlainText + extrairVariaveis
+│   │   ├── tarefas.ts
+│   │   └── busca.ts        # busca global (casos, clientes, documentos)
 │   ├── auth.ts             # Better Auth config (server)
 │   ├── auth-client.ts      # Better Auth config (client)
 │   └── utils/index.ts      # formatters, helpers
 ├── components/
-│   └── layout/
-│       ├── sidebar.tsx     # re-busca sessão ao navegar (pathname dep)
-│       └── topbar.tsx      # re-busca sessão ao navegar (pathname dep)
+│   ├── layout/
+│   │   ├── sidebar.tsx     # re-busca sessão ao navegar (pathname dep)
+│   │   └── topbar.tsx      # re-busca sessão ao navegar (pathname dep)
+│   ├── editor/
+│   │   └── modelo-editor.tsx   # TipTap com toolbar (bold, italic, h2, listas)
+│   ├── dashboard/
+│   │   ├── revenue-chart.tsx   # Recharts: barras de receita mensal
+│   │   └── cases-area-chart.tsx # Recharts: donut de casos por área
+│   ├── onboarding/
+│   │   ├── onboarding-handler.tsx  # Detecta ?welcome=true, controla exibição
+│   │   └── welcome-tour.tsx        # Tour de 6 steps para novo membro
+│   └── search/
+│       └── global-search.tsx   # Ctrl+K: busca global em casos/clientes/documentos
 └── features/
     └── shared/             # EmptyState, StatusBadge, StatsCard
 produto/                    # Documentos estratégicos (não é código)
@@ -88,25 +109,23 @@ supabase/
 | Módulo | Descrição |
 |--------|-----------|
 | **Auth** | Login, cadastro, recuperação de senha, convites por email, roles (owner/admin/lawyer/assistant) |
-| **Dashboard** | Métricas reais: casos ativos, clientes, prazos próximos, receita pendente |
-| **Casos** | CRUD completo, abas de detalhes, prazos e documentos por caso |
+| **Dashboard** | KPIs reais + gráfico de receita mensal (Recharts, barras) + gráfico de casos por área (donut). Despesas excluídas do "a receber" |
+| **Casos** | CRUD completo, responsável por caso, abas: prazos, tarefas, documentos, financeiro do caso |
 | **Clientes** | CRUD completo, busca, casos e documentos por cliente |
 | **Prazos** | Por caso, com horário opcional, sync Google Calendar, status |
 | **Calendário** | Grade mensal, criar prazo direto no calendário (clique ou duplo clique) |
 | **Documentos** | Upload PDF (10 MB/arquivo, 100 MB/escritório), visualização inline, quota tracker |
-| **Financeiro** | Lançamentos (honorários, despesas, reembolsos), filtros, CRUD |
+| **Financeiro** | Lançamentos (honorários, despesas, reembolsos, adiantamentos), filtros, CRUD. Aba financeira por caso |
+| **Modelos** | CRUD completo com editor TipTap. Templates globais da Leea (somente leitura, duplicáveis). Variáveis `{{nome}}` com prévia ao vivo e cópia. Rotas: `/modelos`, `/modelos/novo`, `/modelos/[id]`, `/modelos/[id]/usar` |
+| **Busca global** | Ctrl+K em qualquer tela: busca casos, clientes e documentos em tempo real |
+| **Tarefas por caso** | Aba "Tarefas" no detalhe do caso: título, responsável, status, prioridade, data limite |
 | **Equipe** | Listar membros, convidar por email, revogar convite, remover membro |
 | **Escritório** | Editar dados cadastrais, upload de logo |
 | **Perfil** | Dados profissionais, foto de perfil, áreas de especialidade |
 | **Notificações** | Geradas automaticamente dos prazos (vencido/3 dias/7 dias), leitura persistida em localStorage |
+| **Onboarding** | Tour de boas-vindas de 6 steps para novos membros (ativado via `?welcome=true`) |
 | **Configurações** | Alteração de senha, integração Google Calendar, preferências |
 | **Planos** | Página de beta privado (planos pagos comentados no código) |
-
-### 🟡 Parcialmente implementado
-
-| Módulo | Status |
-|--------|--------|
-| **Modelos** | UI existe mas usa dados mock — sem CRUD real ainda |
 
 ### ❌ Não implementado (roadmap)
 
@@ -145,7 +164,8 @@ Função RLS: `get_user_escritorio_ids()` — lê o `x-user-id` do header da req
 - Queries no servidor usam `createClient(userId)` ou `createServerAuthClient()`
 - Nomes em português para variáveis de domínio (caso, prazo, escritorio)
 - Sem comentários explicando "o quê" — só comentários para "por quê" não óbvio
-- Sem mock data nas páginas de produção (apenas `modelos/` ainda usa)
+- Sem mock data nas páginas de produção
+- Gráficos do dashboard são Client Components que recebem dados processados do Server Component como props — sem waterfall
 
 ---
 
@@ -170,24 +190,50 @@ Devem ser rodadas manualmente no Supabase SQL Editor (projeto não usa Supabase 
 | `20260527010000_storage_imagens.sql` | Bucket imagens + policies |
 | `20260527020000_documentos.sql` | Tabela documentos + bucket documentos |
 | `20260527030000_prazos_hora.sql` | Coluna `hora` (opcional) em prazos |
+| `20260529000000_modelos.sql` | Tabela modelos + RLS + trigger updated_at + RPC incrementar_uso_modelo |
+| `20260529000001_modelos_seed.sql` | 5 templates globais da Leea (escritorio_id = null) |
+
+**Atenção RLS:** usar sempre `in (select get_user_escritorio_ids())` — nunca `= any(get_user_escritorio_ids())`. A função é SRF e o PostgreSQL não permite SRFs diretas em policy expressions.
+
+**Atenção Better Auth:** `created_by` nas tabelas é `text` (não `uuid`). A migration `20260526100000_better_auth.sql` converteu todas as tabelas — novas tabelas devem já usar `text` desde o início.
 
 ---
 
 ## Roadmap — próximas versões
 
-### v2 do beta (prioridade alta)
+### v2 do beta — ✅ concluído
 
-- **Onboarding do segundo usuário** — quando um membro aceita convite, recebe um fluxo de boas-vindas guiado (tour do produto) em vez de cair numa tela vazia; o produto hoje convence quem pesquisou, não quem foi convidado — isso é causa direta de adoção parcial da equipe
-- **Responsável pelo caso** — campo `responsavel_id` na tabela `casos` apontando para um membro do escritório; visível na listagem e no detalhe do caso
-- **Tarefas por caso** (estilo Planner) — aba "Tarefas" no detalhe do caso; cada tarefa tem título, descrição, responsável (membro do escritório), status (pendente/em andamento/concluída), prioridade (alta/média/baixa) e data limite opcional; diferente de prazo — prazo é obrigação processual fatal, tarefa é atividade interna reatribuível; requer nova tabela `tarefas (id, caso_id, escritorio_id, titulo, descricao, responsavel_id, status, prioridade, data_limite, created_by, created_at)`
-- **Busca global** (`Ctrl+K`) — encontrar caso, cliente, documento de qualquer tela
-- **Modelos de documentos** — criar, editar e usar templates com variáveis
-- **Integração com tribunal** — consulta de movimentações via DataJud (CNJ) ou parceiro (JusBrasil/Escavador)
-- **Casos → aba Financeiro** — lançamentos vinculados diretamente ao caso
-- **Dashboard com gráficos** — receita mensal, casos por área, prazos cumpridos
-- **Autocomplete de cliente** — preencher CNPJ/CPF via BrasilAPI + validação de formato; ao digitar CNPJ, preenche razão social, endereço e sócios automaticamente; CPF apenas valida formato (Receita Federal não expõe dados pessoais via API pública)
-- **CEP automático** — endereço preenchido ao digitar o CEP via BrasilAPI (sem autenticação)
-- **Campo "tipo de processo"** — físico ou eletrônico no cadastro do caso; usado pela calculadora de prazos para aplicar regra correta
+Todos os itens da v2 foram implementados, exceto integração com tribunal:
+
+| Item | Status |
+|------|--------|
+| Onboarding do segundo usuário | ✅ Tour de 6 steps via `?welcome=true` |
+| Responsável pelo caso | ✅ Campo `responsavel_id` em casos |
+| Tarefas por caso | ✅ Aba Tarefas no detalhe do caso |
+| Busca global Ctrl+K | ✅ Casos, clientes, documentos |
+| Modelos de documentos | ✅ Editor TipTap, variáveis, prévia ao vivo |
+| Casos → aba Financeiro | ✅ Lançamentos por caso |
+| Dashboard com gráficos | ✅ Receita mensal + casos por área (Recharts) |
+| Autocomplete CNPJ/CPF | ✅ BrasilAPI |
+| CEP automático | ✅ BrasilAPI |
+| Tipo de processo | ✅ Físico/eletrônico no caso |
+| **Integração com tribunal** | ❌ Próxima prioridade — DataJud (CNJ) |
+
+### Modelos de documentos — arquitetura implementada
+
+**Ownership:**
+- `escritorio_id = null` → template global da Leea, somente leitura, duplicável
+- `escritorio_id = <id>` → template privado do escritório, editável
+
+**Rotas:**
+- `/modelos` — lista em grid, filtros por categoria
+- `/modelos/novo` — criar template (editor TipTap + metadados na sidebar)
+- `/modelos/[id]` — editar template (mesmo layout, sidebar mostra variáveis detectadas)
+- `/modelos/[id]/usar` — preencher variáveis, prévia ao vivo com destaques, copiar texto
+
+**Variáveis:** sintaxe `{{nome_variavel}}`. Extraídas via regex do JSON do TipTap. `{{data_hoje}}` pré-preenchida automaticamente. Na prévia, variáveis pendentes aparecem em âmbar, preenchidas em cor primária.
+
+**Fase 2 (pendente):** auto-preencher variáveis do caso quando aberto dentro de `/casos/[id]`, exportar como DOCX.
 
 ### v3 / diferencial competitivo
 
@@ -220,18 +266,6 @@ Devem ser rodadas manualmente no Supabase SQL Editor (projeto não usa Supabase 
 | Texto / análise / geração | Gemini 2.0 Flash | Grátis (1.500 req/dia) |
 | Transcrição de áudio | Groq Whisper | Grátis (tier generoso) |
 | Fallback pago futuro | Claude API / OpenAI | Pago, quando escalar |
-
-### v3 / diferencial competitivo
-
-- **Portal do cliente** — área separada onde o cliente final faz login e acompanha seus casos e documentos
-- **IA nos documentos** — resumo automático de PDFs, sugestão de minutas, extração de dados processuais
-- **Calculadora de prazos assistida** — ver nota técnica abaixo
-- **Notificações por email** — prazos críticos enviados por email (via Resend, já integrado)
-- **Relatórios exportáveis** — PDF/CSV de financeiro, casos, clientes
-- **Exportação de dados do escritório** — CSV/JSON completo de casos, clientes, prazos e financeiro; paradoxalmente gera confiança e reduz medo de lock-in — cliente que sabe que pode sair tem menos medo de entrar
-- **Log de auditoria** — registrar quem criou, editou ou excluiu o quê e quando; essencial para compliance em escritórios com múltiplos advogados; tabela `audit_log (id, escritorio_id, user_id, acao, tabela, registro_id, dados_anteriores, created_at)`
-- **2FA** — autenticação em dois fatores; escritórios com dados sensíveis vão exigir isso antes de pagar planos maiores
-- **Plano Essencial** — tier mais barato com features limitadas (casos + prazos + clientes); para escritórios em crise ou advogados solo; evita perder o cliente para a concorrência em vez de fazer downgrade
 
 #### Nota técnica: Calculadora de prazos
 
