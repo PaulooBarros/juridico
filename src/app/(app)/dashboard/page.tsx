@@ -128,20 +128,23 @@ export default async function DashboardPage() {
       .order('data_prazo', { ascending: true })
       .limit(5),
 
-    // Transações pendentes/atrasadas — sem limit para somar corretamente
+    // Transações a receber (honorários/reembolsos/adiantamentos pendentes ou atrasados)
+    // Despesas são saída de caixa — não entram no "a receber"
     supabase
       .from('transacoes')
       .select('id, descricao, valor, status, vencimento, tipo, clientes(name)')
       .eq('escritorio_id', escritorioId)
       .in('status', ['pending', 'overdue'])
+      .in('tipo', ['honorario', 'reembolso', 'adiantamento'])
       .order('vencimento', { ascending: true }),
 
-    // Receita dos últimos 6 meses (pagas)
+    // Receita dos últimos 6 meses — apenas entradas (não despesas)
     supabase
       .from('transacoes')
       .select('valor, pago_em')
       .eq('escritorio_id', escritorioId)
       .eq('status', 'paid')
+      .in('tipo', ['honorario', 'reembolso', 'adiantamento'])
       .not('pago_em', 'is', null)
       .gte('pago_em', ha6mesesISO),
 
