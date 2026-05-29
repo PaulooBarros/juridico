@@ -11,6 +11,7 @@ import { CasoActions } from './caso-actions'
 import { PrazosTab } from './prazos-tab'
 import { DocumentosTab } from './documentos-tab'
 import { TarefasTab } from './tarefas-tab'
+import { FinanceiroTab } from './financeiro-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerAuthClient()
@@ -62,6 +63,7 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="tarefas">Tarefas</TabsTrigger>
           <TabsTrigger value="prazos">Prazos</TabsTrigger>
+          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
         </TabsList>
 
@@ -186,6 +188,13 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
         <TabsContent value="tarefas">
           <div className="mt-4">
             <TarefasTab casoId={params.id} />
+          </div>
+        </TabsContent>
+
+        {/* Financeiro */}
+        <TabsContent value="financeiro">
+          <div className="mt-4">
+            <FinanceiroTab casoId={params.id} />
           </div>
         </TabsContent>
 

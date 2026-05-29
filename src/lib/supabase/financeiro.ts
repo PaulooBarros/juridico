@@ -50,6 +50,21 @@ export const STATUS_LABEL: Record<TransacaoStatus, string> = {
   cancelled: 'Cancelado',
 }
 
+export async function listarTransacoesPorCaso(casoId: string): Promise<Transacao[]> {
+  const supabase = await createAuthClient()
+  const { data } = await supabase
+    .from('transacoes')
+    .select('*, clientes(name)')
+    .eq('caso_id', casoId)
+    .order('created_at', { ascending: false })
+  return ((data ?? []) as any[]).map(t => ({
+    ...t,
+    caso_titulo:  null,
+    cliente_nome: t.clientes?.name ?? null,
+    clientes:     undefined,
+  }))
+}
+
 export async function listarTransacoes(): Promise<Transacao[]> {
   const escritorioId = await getMeuEscritorioId()
   if (!escritorioId) return []
