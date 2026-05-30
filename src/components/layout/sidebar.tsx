@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LeeaLogo } from '@/components/ui/leea-logo'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getInitials } from '@/lib/utils'
 
 const NAV: Array<
   | { section: string }
@@ -41,9 +43,6 @@ interface SidebarProps {
   onMobileClose: () => void
 }
 
-function getInitials(name: string) {
-  return name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()
-}
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
@@ -57,7 +56,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   // Re-busca sessão e escritório a cada navegação para refletir atualizações
   // de avatar/logo feitas em outras páginas (ex: /perfil, /escritorio)
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
+    authClient.getSession({ fetchOptions: { cache: 'no-store' } }).then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
       setUserAvatar(user?.image ?? null)
@@ -201,12 +200,12 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
               (!isCollapsed || mobileOpen) ? '' : 'lg:justify-center lg:px-0'
             )}
           >
-            <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center font-semibold text-[10px] shrink-0 overflow-hidden">
-              {userAvatar
-                ? <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
-                : (userName ? getInitials(userName) : '?')
-              }
-            </div>
+            <Avatar className="w-6 h-6 shrink-0">
+              {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
+              <AvatarFallback className="text-[9px] font-semibold bg-foreground text-background">
+                {userName ? getInitials(userName) : '?'}
+              </AvatarFallback>
+            </Avatar>
             {(!isCollapsed || mobileOpen) && (
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] font-medium truncate text-foreground">{userName || '…'}</div>

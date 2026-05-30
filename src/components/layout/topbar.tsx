@@ -28,7 +28,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen, on
 
   useEffect(() => {
     setMounted(true)
-    authClient.getSession().then(({ data }) => {
+    authClient.getSession({ fetchOptions: { cache: 'no-store' } }).then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
       setUserAvatar(user?.image ?? null)

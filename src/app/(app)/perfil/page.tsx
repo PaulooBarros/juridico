@@ -87,9 +87,6 @@ export default function PerfilPage() {
       const data = await res.json()
       if (!res.ok) { setAvatarErro(data.error ?? 'Erro no upload'); return }
       setAvatar(data.url)
-      // Atualiza via Better Auth para invalidar o cache de sessão —
-      // sem isso getSession() continua retornando a imagem antiga
-      await authClient.updateUser({ image: data.url } as any)
     } catch {
       setAvatarErro('Erro de conexão')
     } finally {
