@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: { default: 'Leea', template: '%s · Leea' },
-  description: 'Quando tudo está sob controle, a advocacia fica inevitável.',
+  description: 'Software jurídico para escritórios de advocacia brasileiros.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
