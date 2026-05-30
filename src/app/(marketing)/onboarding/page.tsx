@@ -14,17 +14,16 @@ const STEPS = [
   { id: 2, label: 'Identidade' },
   { id: 3, label: 'Advogado' },
   { id: 4, label: 'Equipe' },
-  { id: 5, label: 'Plano' },
+  // { id: 5, label: 'Plano' },  // comentado até billing estar disponível
 ]
 
-const STEP_TITLES = ['', 'Dados do escritório', 'Identidade visual', 'Perfil profissional', 'Convidar equipe', 'Escolha seu plano']
+const STEP_TITLES = ['', 'Dados do escritório', 'Identidade visual', 'Perfil profissional', 'Convidar equipe']
 const STEP_SUBS = [
   '',
   'Informações cadastrais. Aparecem em documentos gerados pelo sistema.',
   'Como o escritório se apresenta para clientes e equipe.',
   'Esses dados aparecem em petições e na comunicação com clientes.',
   'Convide colegas para colaborar. Você pode pular e fazer depois.',
-  'Comece com 14 dias grátis em qualquer plano.',
 ]
 
 type Dados = {
@@ -110,7 +109,7 @@ export default function OnboardingPage() {
           {step === 2 && <StepIdentidade dados={dados} set={set} />}
           {step === 3 && <StepAdvogado   dados={dados} set={set} />}
           {step === 4 && <StepEquipe     dados={dados} set={set} />}
-          {step === 5 && <StepPlano      dados={dados} set={set} />}
+          {/* {step === 5 && <StepPlano dados={dados} set={set} />} */}
 
           {erro && <p className="mt-4 text-[12px] text-destructive">{erro}</p>}
 
@@ -125,7 +124,7 @@ export default function OnboardingPage() {
               </button>
             )}
 
-            {step < 5 ? (
+            {step < 4 ? (
               <button
                 onClick={() => setStep(s => s + 1)}
                 disabled={step === 1 && !dados.nome.trim()}
@@ -338,43 +337,13 @@ function StepEquipe({ dados, set }: { dados: Dados; set: (p: Partial<Dados>) => 
   )
 }
 
-// ── Step 5 ────────────────────────────────────────────────────────────────────
-const PLANS = [
-  { id: 'starter',    name: 'Starter',    price: 'R$ 89',      period: '/mês', desc: 'Até 2 advogados · 50 casos · 5 GB' },
-  { id: 'pro',        name: 'Pro',        price: 'R$ 189',     period: '/mês', desc: 'Até 8 advogados · Casos ilimitados · 50 GB', featured: true },
-  { id: 'enterprise', name: 'Enterprise', price: 'Sob consulta', period: '',   desc: 'Equipe ilimitada · SLA · Suporte dedicado' },
-]
-
-function StepPlano({ dados, set }: { dados: Dados; set: (p: Partial<Dados>) => void }) {
-  return (
-    <div className="grid gap-3">
-      {PLANS.map(plan => (
-        <button key={plan.id} type="button" onClick={() => set({ plano: plan.id })}
-          className={cn('w-full text-left p-5 rounded-[8px] border transition-all relative',
-            dados.plano === plan.id ? 'border-foreground bg-card' : 'border-border bg-card hover:border-muted-foreground/50')}>
-          {plan.featured && (
-            <span className="absolute top-3 right-3 font-mono text-[10px] uppercase tracking-[0.06em] bg-foreground text-background px-2 py-0.5 rounded-[3px]">Recomendado</span>
-          )}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className={cn('w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0', dados.plano === plan.id ? 'border-foreground' : 'border-border')}>
-                  {dados.plano === plan.id && <div className="w-2 h-2 rounded-full bg-foreground" />}
-                </div>
-                <span className="text-[15px] font-medium">{plan.name}</span>
-              </div>
-              <p className="text-[13px] text-muted-foreground ml-6">{plan.desc}</p>
-            </div>
-            <div className="shrink-0 text-right">
-              <span className="font-serif text-[22px] font-medium">{plan.price}</span>
-              {plan.period && <span className="text-[13px] text-muted-foreground ml-1">{plan.period}</span>}
-            </div>
-          </div>
-        </button>
-      ))}
-    </div>
-  )
-}
+// ── Step 5 — comentado até billing estar disponível ───────────────────────────
+// const PLANS = [
+//   { id: 'starter',    name: 'Starter',    price: 'R$ 89',       period: '/mês', desc: 'Até 2 advogados · 50 casos · 5 GB' },
+//   { id: 'pro',        name: 'Pro',        price: 'R$ 189',      period: '/mês', desc: 'Até 8 advogados · Casos ilimitados · 50 GB', featured: true },
+//   { id: 'enterprise', name: 'Enterprise', price: 'Sob consulta', period: '',    desc: 'Equipe ilimitada · SLA · Suporte dedicado' },
+// ]
+// function StepPlano({ dados, set }: { dados: Dados; set: (p: Partial<Dados>) => void }) { ... }
 
 // ── Tela de conclusão ─────────────────────────────────────────────────────────
 function TelaConcluido({ convites, onEntrar }: { convites: ConviteCriado[]; onEntrar: () => void }) {
