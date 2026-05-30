@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Loader2, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { listarClientes, type Cliente } from '@/lib/supabase/clientes'
 import { listarMembros, type Membro } from '@/lib/supabase/equipe'
 import { atualizarCaso, deletarCaso, type Caso, type CasoInput, type CasoStatus, type CasoArea, type CasoFase, type TipoProcesso } from '@/lib/supabase/casos'
+import { resolverTribunal, normalizarNumero } from '@/lib/datajud'
 
 const AREAS: Array<{ value: CasoArea; label: string }> = [
   { value: 'civil',          label: 'Cível' },
@@ -101,10 +102,44 @@ function CasoFormModal({
   const [loading,  setLoading]  = useState(false)
   const [erro,     setErro]     = useState('')
 
+  const [datajudInfo, setDatajudInfo] = useState<DatajudAutofill | null>(null)
+  const [buscandoDatajud, setBuscandoDatajud] = useState(false)
+
+  // Tribunal derivado do formato do número — instantâneo, sem depender do DataJud
+  const tribunalDoNumero = (() => {
+    const digitos = (form.numero ?? '').replace(/\D/g, '')
+    if (digitos.length !== 20) return null
+    return resolverTribunal(normalizarNumero(form.numero ?? ''))?.toUpperCase() ?? null
+  })()
+
   useEffect(() => {
     listarClientes().then(setClientes).catch(() => {})
     listarMembros().then(setMembros).catch(() => {})
   }, [])
+
+  // Consulta DataJud quando o número atinge 20 dígitos
+  useEffect(() => {
+    const digitos = (form.numero ?? '').replace(/\D/g, '')
+    if (digitos.length !== 20) { setDatajudInfo(null); return }
+
+    setBuscandoDatajud(true)
+    setDatajudInfo(null)
+    const t = setTimeout(async () => {
+      try {
+        const res  = await fetch('/api/datajud', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ numero: form.numero }),
+        })
+        const json = await res.json()
+        if (json.ok && json.processo) {
+          setDatajudInfo(extrairAutofill(json.processo, form.numero ?? ''))
+        }
+      } catch {}
+      finally { setBuscandoDatajud(false) }
+    }, 800)
+    return () => clearTimeout(t)
+  }, [form.numero])
 
   const set = (patch: Partial<CasoInput>) => setForm(prev => ({ ...prev, ...patch }))
 
@@ -161,6 +196,36 @@ function CasoFormModal({
               <F label="Número">
                 <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
                   placeholder="0000000-00.0000.0.00.0000" className="h-9 text-[13px] font-mono" />
+                {tribunalDoNumero && (
+                  <div className="flex items-center justify-between gap-2 px-2.5 py-2 bg-muted/50 border rounded-md mt-1">
+                    <div className="text-[11px] leading-snug">
+                      <span className="font-medium text-foreground">{tribunalDoNumero}</span>
+                      {datajudInfo?.orgaoJulgador && (
+                        <span className="text-muted-foreground"> · {datajudInfo.orgaoJulgador}</span>
+                      )}
+                      {datajudInfo?.descricao && (
+                        <p className="text-muted-foreground mt-0.5 truncate max-w-[220px]">{datajudInfo.descricao}</p>
+                      )}
+                      {buscandoDatajud && (
+                        <p className="text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Loader2 size={9} className="animate-spin" /> Consultando DataJud…
+                        </p>
+                      )}
+                      {!buscandoDatajud && !datajudInfo && (
+                        <p className="text-muted-foreground mt-0.5">Processo não encontrado no DataJud</p>
+                      )}
+                    </div>
+                    {datajudInfo && (
+                      <button
+                        type="button"
+                        onClick={() => preencherComDatajud(datajudInfo, set)}
+                        className="flex items-center gap-1 text-[11px] text-primary hover:underline shrink-0 font-medium"
+                      >
+                        <Sparkles size={10} /> Preencher
+                      </button>
+                    )}
+                  </div>
+                )}
               </F>
               <F label="Tipo">
                 <Select value={form.tipo_processo ?? '_none_'} onValueChange={v => set({ tipo_processo: v === '_none_' ? null : v as TipoProcesso })}>
@@ -296,4 +361,74 @@ function Sec({ title }: { title: string }) {
       <div className="h-px flex-1 bg-border" />
     </div>
   )
+}
+
+// ── DataJud auto-fill ─────────────────────────────────────────────────────────
+
+type DatajudAutofill = {
+  tribunal?:      string
+  orgaoJulgador?: string
+  tipoProcesso?:  TipoProcesso
+  fase?:          CasoFase
+  area?:          CasoArea
+  descricao?:     string
+}
+
+function campoStr(v: any): string {
+  if (!v) return ''
+  if (typeof v === 'string') return v
+  if (typeof v === 'object' && v.nome) return String(v.nome)
+  return ''
+}
+
+function extrairAutofill(processo: any, numero: string): DatajudAutofill {
+  const info: DatajudAutofill = {
+    tribunal:      campoStr(processo.tribunal),
+    orgaoJulgador: campoStr(processo.orgaoJulgador?.nome ?? processo.orgaoJulgador),
+  }
+
+  const fmt = campoStr(processo.formato).toUpperCase()
+  if (fmt.includes('ELETR') || fmt.includes('DIGIT')) info.tipoProcesso = 'eletronico'
+  else if (fmt.includes('FÍSIC') || fmt.includes('FISIC')) info.tipoProcesso = 'fisico'
+
+  const grau = campoStr(processo.grau).toUpperCase()
+  if (grau === 'G1' || grau.includes('JE') || grau.includes('ESPECIAL')) info.fase = 'conhecimento'
+  else if (grau === 'G2' || grau.includes('RECURSAL') || grau.includes('SUPERIOR')) info.fase = 'recurso'
+
+  const digitos = numero.replace(/\D/g, '')
+  const j = digitos.length === 20 ? digitos[13] : ''
+  if (j === '5') {
+    info.area = 'trabalhista'
+  } else {
+    const classe = campoStr(processo.classe?.nome ?? processo.classe).toLowerCase()
+    if (classe.includes('trabalhist'))                                       info.area = 'trabalhista'
+    else if (classe.includes('penal') || classe.includes('criminal'))        info.area = 'criminal'
+    else if (classe.includes('tributar') || classe.includes('fiscal'))       info.area = 'tributario'
+    else if (classe.includes('família') || classe.includes('familia') ||
+             classe.includes('divórc') || classe.includes('alimento') ||
+             classe.includes('guarda'))                                      info.area = 'familia'
+    else if (classe.includes('recuperação judicial') || classe.includes('falência') ||
+             classe.includes('empresar'))                                    info.area = 'empresarial'
+    else if (classe.includes('consumidor'))                                  info.area = 'consumidor'
+    else if (classe.includes('previdenciár') || classe.includes('previdenciar') ||
+             classe.includes('inss'))                                        info.area = 'previdenciario'
+  }
+
+  const partes = [
+    campoStr(processo.classe?.nome ?? processo.classe),
+    campoStr(processo.assuntos?.[0]?.nome ?? processo.assuntos?.[0]),
+  ].filter(Boolean)
+  if (partes.length) info.descricao = partes.join(' · ')
+
+  return info
+}
+
+function preencherComDatajud(info: DatajudAutofill, set: (patch: Partial<CasoInput>) => void) {
+  const patch: Partial<CasoInput> = {}
+  if (info.orgaoJulgador) patch.vara          = info.orgaoJulgador
+  if (info.tipoProcesso)  patch.tipo_processo  = info.tipoProcesso
+  if (info.fase)          patch.fase           = info.fase
+  if (info.area)          patch.area           = info.area
+  if (info.descricao)     patch.descricao      = info.descricao
+  set(patch)
 }

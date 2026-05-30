@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, Briefcase, Plus, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { Search, Briefcase, Plus, Loader2, Pencil, Trash2, Sparkles } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -18,6 +18,7 @@ import {
   listarCasos, criarCaso, atualizarCaso, deletarCaso,
   type Caso, type CasoInput, type CasoStatus, type CasoArea, type CasoFase, type TipoProcesso,
 } from '@/lib/supabase/casos'
+import { resolverTribunal, normalizarNumero } from '@/lib/datajud'
 
 const AREAS: Array<{ value: CasoArea; label: string }> = [
   { value: 'civil',          label: 'Cível' },
@@ -96,14 +97,15 @@ export default function CasosPage() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className="h-9 rounded-md border border-input bg-transparent px-3 text-xs text-foreground min-w-40"
-          value={area}
-          onChange={e => setArea(e.target.value as any)}
-        >
-          <option value="all">Todas as áreas</option>
-          {AREAS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-        </select>
+        <Select value={area} onValueChange={v => setArea(v as any)}>
+          <SelectTrigger className="h-9 text-xs min-w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as áreas</SelectItem>
+            {AREAS.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
         <div className="flex items-center gap-1 bg-muted/50 border rounded-md p-1">
           {STATUSES.map(s => (
             <button key={s.value} onClick={() => setStatus(s.value as any)}
@@ -242,10 +244,43 @@ function CasoFormModal({
   const [loading,  setLoading]  = useState(false)
   const [erro,     setErro]     = useState('')
 
+  const [datajudInfo, setDatajudInfo] = useState<DatajudAutofill | null>(null)
+  const [buscandoDatajud, setBuscandoDatajud] = useState(false)
+
+  const tribunalDoNumero = (() => {
+    const digitos = (form.numero ?? '').replace(/\D/g, '')
+    if (digitos.length !== 20) return null
+    return resolverTribunal(normalizarNumero(form.numero ?? ''))?.toUpperCase() ?? null
+  })()
+
   useEffect(() => {
     listarClientes().then(setClientes).catch(() => {})
     import('@/lib/supabase/equipe').then(m => m.listarMembros()).then(setMembros).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    const digitos = (form.numero ?? '').replace(/\D/g, '')
+    if (digitos.length !== 20) { setDatajudInfo(null); return }
+    setBuscandoDatajud(true)
+    setDatajudInfo(null)
+    const numero = form.numero ?? ''
+    const t = setTimeout(async () => {
+      try {
+        const res  = await fetch('/api/datajud', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ numero }),
+        })
+        const json = await res.json()
+        if (json.ok && json.processo) {
+          setDatajudInfo(extrairAutofill(json.processo, numero))
+        }
+      } catch {
+      } finally {
+        setBuscandoDatajud(false)
+      }
+    }, 800)
+    return () => clearTimeout(t)
+  }, [form.numero])
 
   const set = (patch: Partial<CasoInput>) => setForm(prev => ({ ...prev, ...patch }))
 
@@ -272,13 +307,50 @@ function CasoFormModal({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <SheetBody className="space-y-4">
 
-            {/* Caso */}
-            <Sec title="Caso" />
+            {/* Identificação */}
+            <Sec title="Identificação" />
             <F label="Título *">
               <Input value={form.titulo} onChange={e => set({ titulo: e.target.value })}
                 placeholder="Ex: Ação de Cobrança — Contrato de Empreitada"
                 className="h-9 text-[13px]" autoFocus={!editMode} />
             </F>
+            <F label="Número do processo">
+              <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
+                placeholder="0000000-00.0000.0.00.0000 ou 20 dígitos" className="h-9 text-[13px] font-mono" />
+              {tribunalDoNumero && (
+                <div className="flex items-center justify-between gap-2 px-2.5 py-2 bg-muted/50 border rounded-md mt-1">
+                  <div className="text-[11px] leading-snug">
+                    <span className="font-medium text-foreground">{tribunalDoNumero}</span>
+                    {datajudInfo?.orgaoJulgador && (
+                      <span className="text-muted-foreground"> · {datajudInfo.orgaoJulgador}</span>
+                    )}
+                    {datajudInfo?.descricao && (
+                      <p className="text-muted-foreground mt-0.5 truncate max-w-[220px]">{datajudInfo.descricao}</p>
+                    )}
+                    {buscandoDatajud && (
+                      <p className="text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Loader2 size={9} className="animate-spin" /> Consultando DataJud…
+                      </p>
+                    )}
+                    {!buscandoDatajud && !datajudInfo && (
+                      <p className="text-muted-foreground mt-0.5">Processo não encontrado no DataJud</p>
+                    )}
+                  </div>
+                  {datajudInfo && (
+                    <button
+                      type="button"
+                      onClick={() => preencherComDatajud(datajudInfo, set)}
+                      className="flex items-center gap-1 text-[11px] text-primary hover:underline shrink-0 font-medium"
+                    >
+                      <Sparkles size={10} /> Preencher
+                    </button>
+                  )}
+                </div>
+              )}
+            </F>
+
+            {/* Classificação */}
+            <Sec title="Classificação" />
             <div className="grid grid-cols-2 gap-3">
               <F label="Área *">
                 <Select value={form.area} onValueChange={v => set({ area: v as CasoArea })}>
@@ -300,10 +372,10 @@ function CasoFormModal({
 
             {/* Processo */}
             <Sec title="Processo" />
-            <div className="grid grid-cols-[1fr_148px] gap-3">
-              <F label="Número">
-                <Input value={form.numero ?? ''} onChange={e => set({ numero: e.target.value })}
-                  placeholder="0000000-00.0000.0.00.0000" className="h-9 text-[13px] font-mono" />
+            <div className="grid grid-cols-2 gap-3">
+              <F label="Vara">
+                <Input value={form.vara ?? ''} onChange={e => set({ vara: e.target.value })}
+                  placeholder="5ª Vara Cível" className="h-9 text-[13px]" />
               </F>
               <F label="Tipo">
                 <Select value={form.tipo_processo ?? '_none_'} onValueChange={v => set({ tipo_processo: v === '_none_' ? null : v as TipoProcesso })}>
@@ -316,32 +388,14 @@ function CasoFormModal({
                 </Select>
               </F>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <F label="Vara / Tribunal">
-                <Input value={form.vara ?? ''} onChange={e => set({ vara: e.target.value })}
-                  placeholder="5ª Vara Cível — TJSP" className="h-9 text-[13px]" />
-              </F>
-              <F label="Juiz">
-                <Input value={form.juiz ?? ''} onChange={e => set({ juiz: e.target.value })}
-                  placeholder="Nome do magistrado" className="h-9 text-[13px]" />
-              </F>
-            </div>
+            <F label="Juiz(a)">
+              <Input value={form.juiz ?? ''} onChange={e => set({ juiz: e.target.value })}
+                placeholder="Nome do magistrado" className="h-9 text-[13px]" />
+            </F>
 
             {/* Vínculos */}
             <Sec title="Vínculos" />
             <div className="grid grid-cols-2 gap-3">
-              <F label="Status">
-                <Select value={form.status} onValueChange={v => set({ status: v as CasoStatus })}>
-                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="suspended">Suspenso</SelectItem>
-                    <SelectItem value="closed">Encerrado</SelectItem>
-                    <SelectItem value="archived">Arquivado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </F>
               <F label="Cliente">
                 <Select value={form.cliente_id || '_none_'} onValueChange={v => set({ cliente_id: v === '_none_' ? '' : v })}>
                   <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="— Sem cliente —" /></SelectTrigger>
@@ -351,16 +405,16 @@ function CasoFormModal({
                   </SelectContent>
                 </Select>
               </F>
+              <F label="Responsável">
+                <Select value={form.responsavel_id || '_none_'} onValueChange={v => set({ responsavel_id: v === '_none_' ? null : v })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="— Sem responsável —" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none_">— Sem responsável —</SelectItem>
+                    {membros.map((m: any) => <SelectItem key={m.user_id} value={m.user_id}>{m.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </F>
             </div>
-            <F label="Responsável">
-              <Select value={form.responsavel_id || '_none_'} onValueChange={v => set({ responsavel_id: v === '_none_' ? null : v })}>
-                <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="— Sem responsável —" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none_">— Sem responsável —</SelectItem>
-                  {membros.map((m: any) => <SelectItem key={m.user_id} value={m.user_id}>{m.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </F>
 
             {/* Financeiro */}
             <Sec title="Financeiro" />
@@ -376,9 +430,9 @@ function CasoFormModal({
               <Textarea value={form.descricao ?? ''} onChange={e => set({ descricao: e.target.value })}
                 rows={2} className="text-[13px] resize-none" placeholder="Resumo do caso…" />
             </F>
-            <F label="Observações internas">
+            <F label="Notas internas">
               <Textarea value={form.notes ?? ''} onChange={e => set({ notes: e.target.value })}
-                rows={2} className="text-[13px] resize-none" placeholder="Notas internas…" />
+                rows={2} className="text-[13px] resize-none" placeholder="Observações privadas da equipe…" />
             </F>
 
           </SheetBody>
@@ -444,4 +498,79 @@ function Sec({ title }: { title: string }) {
       <div className="h-px flex-1 bg-border" />
     </div>
   )
+}
+
+// ── DataJud auto-fill ─────────────────────────────────────────────────────────
+
+type DatajudAutofill = {
+  tribunal?:     string
+  orgaoJulgador?: string
+  tipoProcesso?: TipoProcesso
+  fase?:         CasoFase
+  area?:         CasoArea
+  descricao?:    string
+}
+
+// Extrai string de campos que podem vir como string simples ou objeto {nome, codigo}
+function campoStr(v: any): string {
+  if (!v) return ''
+  if (typeof v === 'string') return v
+  if (typeof v === 'object' && v.nome) return String(v.nome)
+  return ''
+}
+
+function extrairAutofill(processo: any, numero: string): DatajudAutofill {
+  const info: DatajudAutofill = {
+    tribunal:      campoStr(processo.tribunal),
+    orgaoJulgador: campoStr(processo.orgaoJulgador?.nome ?? processo.orgaoJulgador),
+  }
+
+  // tipo_processo ← formato
+  const fmt = campoStr(processo.formato).toUpperCase()
+  if (fmt.includes('ELETR') || fmt.includes('DIGIT')) info.tipoProcesso = 'eletronico'
+  else if (fmt.includes('FÍSIC') || fmt.includes('FISIC')) info.tipoProcesso = 'fisico'
+
+  // fase ← grau
+  const grau = campoStr(processo.grau).toUpperCase()
+  if (grau === 'G1' || grau.includes('JE') || grau.includes('ESPECIAL')) info.fase = 'conhecimento'
+  else if (grau === 'G2' || grau.includes('RECURSAL') || grau.includes('SUPERIOR')) info.fase = 'recurso'
+
+  // area ← J do número ou classe.nome
+  const digitos = numero.replace(/\D/g, '')
+  const j = digitos.length === 20 ? digitos[13] : ''
+  if (j === '5') {
+    info.area = 'trabalhista'
+  } else {
+    const classe = campoStr(processo.classe?.nome ?? processo.classe).toLowerCase()
+    if (classe.includes('trabalhist'))                                       info.area = 'trabalhista'
+    else if (classe.includes('penal') || classe.includes('criminal'))        info.area = 'criminal'
+    else if (classe.includes('tributar') || classe.includes('fiscal'))       info.area = 'tributario'
+    else if (classe.includes('família') || classe.includes('familia') ||
+             classe.includes('divórc') || classe.includes('alimento') ||
+             classe.includes('guarda'))                                      info.area = 'familia'
+    else if (classe.includes('recuperação judicial') || classe.includes('falência') ||
+             classe.includes('empresar'))                                    info.area = 'empresarial'
+    else if (classe.includes('consumidor'))                                  info.area = 'consumidor'
+    else if (classe.includes('previdenciár') || classe.includes('previdenciar') ||
+             classe.includes('inss'))                                        info.area = 'previdenciario'
+  }
+
+  // descricao ← classe + assunto
+  const partes = [
+    campoStr(processo.classe?.nome ?? processo.classe),
+    campoStr(processo.assuntos?.[0]?.nome ?? processo.assuntos?.[0]),
+  ].filter(Boolean)
+  if (partes.length) info.descricao = partes.join(' · ')
+
+  return info
+}
+
+function preencherComDatajud(info: DatajudAutofill, set: (patch: Partial<CasoInput>) => void) {
+  const patch: Partial<CasoInput> = {}
+  if (info.orgaoJulgador) patch.vara         = info.orgaoJulgador
+  if (info.tipoProcesso)  patch.tipo_processo = info.tipoProcesso
+  if (info.fase)          patch.fase          = info.fase
+  if (info.area)          patch.area          = info.area
+  if (info.descricao)     patch.descricao     = info.descricao
+  set(patch)
 }

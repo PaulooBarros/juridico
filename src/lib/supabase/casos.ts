@@ -122,7 +122,11 @@ export async function criarCaso(input: CasoInput): Promise<Caso> {
 
 export async function atualizarCaso(id: string, input: Partial<CasoInput>): Promise<void> {
   const supabase = await createAuthClient()
-  const { error } = await supabase.from('casos').update(input).eq('id', id)
+  const { error } = await supabase.from('casos').update({
+    ...input,
+    cliente_id:     input.cliente_id     || null,
+    responsavel_id: input.responsavel_id || null,
+  }).eq('id', id)
   if (error) throw error
 }
 
