@@ -234,7 +234,7 @@ export default function EscritorioPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[12px] text-muted-foreground">Cidade / UF</Label>
-                    <Input value={form.cidade_uf ?? ''} onChange={e => set({ cidade_uf: e.target.value })} placeholder="São Paulo / SP" className="h-9 text-[13px]" />
+                    <Input value={form.cidade_uf ?? ''} onChange={e => set({ cidade_uf: e.target.value })} placeholder="Aracaju / SP" className="h-9 text-[13px]" />
                   </div>
                 </div>
                 <div className="space-y-1.5">

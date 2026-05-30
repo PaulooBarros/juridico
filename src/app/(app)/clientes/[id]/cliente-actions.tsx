@@ -157,7 +157,7 @@ function ClienteFormModal({
           <div className="grid grid-cols-[1fr_80px] gap-3">
             <F label="Cidade">
               <Input value={form.city ?? ''} onChange={e => set({ city: e.target.value })}
-                placeholder="São Paulo" className="h-9 text-[13px]" />
+                placeholder="Aracaju" className="h-9 text-[13px]" />
             </F>
             <F label="UF">
               <select value={form.state ?? ''} onChange={e => set({ state: e.target.value })}

@@ -194,9 +194,9 @@ function Configuracoes() {
           <ConfField label="Razão social" value="Costa, Furtado & Werneck Advogados Associados" />
           <ConfField label="CNPJ" value="42.881.401/0001-22" mono />
           <ConfField label="OAB (sociedade)" value="OAB/SP 12.481" mono />
-          <ConfField label="Endereço" value="Av. Paulista, 1842 — 14º andar — São Paulo / SP" />
+          <ConfField label="Endereço" value="Av. Paulista, 1842 — 14º andar — Aracaju / SP" />
           <ConfField label="Telefone principal" value="(11) 3145-7700" mono />
-          <ConfField label="Fuso horário" value="(UTC-3) São Paulo" />
+          <ConfField label="Fuso horário" value="(UTC-3) Aracaju" />
         </ConfSection>}
 
         {tab === "usuario" && <ConfSection title="Sua conta" desc="Preferências pessoais">
@@ -402,7 +402,7 @@ function EscritorioPerfil() {
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div className="field"><label className="field-label">Nome</label><input className="input input-lg" defaultValue="Costa, Furtado & Werneck Advogados" /></div>
           <div className="field"><label className="field-label">Slogan</label><input className="input input-lg" defaultValue="Estratégia jurídica para empresas que decidem." /></div>
-          <div className="field"><label className="field-label">Descrição pública</label><textarea className="input input-lg" rows="3" defaultValue="Banca full-service com 18 anos de atuação em contencioso empresarial, trabalhista e tributário. Sede em São Paulo, operação nacional." /></div>
+          <div className="field"><label className="field-label">Descrição pública</label><textarea className="input input-lg" rows="3" defaultValue="Banca full-service com 18 anos de atuação em contencioso empresarial, trabalhista e tributário. Sede em Aracaju, operação nacional." /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14 }}>
             <div className="field"><label className="field-label">CNPJ</label><input className="input input-lg" defaultValue="42.881.401/0001-22" /></div>
             <div className="field"><label className="field-label">OAB (sociedade)</label><input className="input input-lg" defaultValue="OAB/SP 12.481" /></div>

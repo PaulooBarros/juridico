@@ -64,7 +64,7 @@ function baseTemplate(content: string) {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid ${C.border};background:${C.footer};">
             <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:${C.fgSubtle};text-transform:uppercase;letter-spacing:0.07em;">
-              © 2026 Leea · São Paulo, Brasil
+              © 2026 Leea · Aracaju, Brasil
             </p>
           </td>
         </tr>

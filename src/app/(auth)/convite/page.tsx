@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Building2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { createClient } from '@/lib/supabase/client'
+import { LeeaLogo } from '@/components/ui/leea-logo'
 
 type ConviteInfo = {
   id: string
@@ -159,9 +160,10 @@ function ConviteContent() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-8 py-16">
-      <Link href="/landing" className="flex items-center gap-2 mb-10">
-        <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">L</div>
-        <span className="font-serif font-medium text-[15px]">Leea</span>
+      <Link href="/landing" className="flex items-center gap-2.5 mb-10">
+        <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-7 h-7" />
+        <LeeaLogo variant="light" height={20} className="dark:hidden" />
+        <LeeaLogo variant="dark"  height={20} className="hidden dark:block" />
       </Link>
       <div className="w-full max-w-[380px] text-center flex flex-col items-center">
         {children}

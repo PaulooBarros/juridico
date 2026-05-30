@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { criarEscritorioCompleto, type ConviteCriado } from '@/lib/supabase/escritorio'
+import { LeeaLogo } from '@/components/ui/leea-logo'
 
 const STEPS = [
   { id: 1, label: 'Escritório' },
@@ -75,10 +76,9 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="flex items-center justify-between px-10 border-b border-border h-[49px] shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">V</div>
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">
-            Vetor <em className="text-primary not-italic">Jurídico</em>
-          </span>
+          <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-[22px] h-[22px]" />
+          <LeeaLogo variant="light" height={18} className="dark:hidden" />
+          <LeeaLogo variant="dark"  height={18} className="hidden dark:block" />
         </div>
         <div className="flex items-center gap-2">
           {STEPS.map((s, i) => (
@@ -176,7 +176,7 @@ function StepEscritorio({ dados, set }: { dados: Dados; set: (p: Partial<Dados>)
         </select>
       </Field>
       <Field label="Cidade / UF">
-        <Input value={dados.cidade_uf} onChange={e => set({ cidade_uf: e.target.value })} placeholder="São Paulo / SP" className="h-9 text-[13px]" />
+        <Input value={dados.cidade_uf} onChange={e => set({ cidade_uf: e.target.value })} placeholder="Aracaju / SP" className="h-9 text-[13px]" />
       </Field>
     </div>
   )

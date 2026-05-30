@@ -11,6 +11,7 @@ import {
   CircleUser, LogOut, ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LeeaLogo } from '@/components/ui/leea-logo'
 
 const NAV: Array<
   | { section: string }
@@ -126,15 +127,15 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           )}
         >
           {isCollapsed ? (
-            <div className="hidden lg:flex w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground items-center justify-center font-serif italic font-semibold text-[13px]">
-              L
-            </div>
+            <img
+              src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png"
+              alt="Leea"
+              className="hidden lg:block w-[26px] h-[26px]"
+            />
           ) : (
-            <div className="flex items-center gap-2.5 px-4 py-4">
-              <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px] shrink-0">
-                L
-              </div>
-              <span className="font-serif font-medium text-[16px] tracking-[-0.01em]">Leea</span>
+            <div className="px-4 py-4">
+              <LeeaLogo variant="light" height={22} className="dark:hidden" />
+              <LeeaLogo variant="dark"  height={22} className="hidden dark:block" />
             </div>
           )}
         </Link>

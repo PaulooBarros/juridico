@@ -215,7 +215,7 @@ function Landing() {
             </div>
           </div>
           <div style={{ fontSize: 11, color: "var(--fg-subtle)", fontFamily: "var(--font-mono)" }}>
-            © 2026 Vetor Jurídico · CNPJ 00.000.000/0001-00 · São Paulo, Brasil
+            © 2026 Vetor Jurídico · CNPJ 00.000.000/0001-00 · Aracaju, Brasil
           </div>
         </div>
       </footer>
@@ -240,7 +240,7 @@ function Login() {
           <div className="eyebrow" style={{ marginTop: 24 }}>— Vetor Jurídico</div>
         </div>
         <div style={{ fontSize: 11, color: "var(--fg-subtle)", fontFamily: "var(--font-mono)" }}>
-          v2026.05 · São Paulo, Brasil
+          v2026.05 · Aracaju, Brasil
         </div>
       </div>
       <div className="auth-form-wrap">
@@ -306,7 +306,7 @@ function Cadastro() {
           </div>
         </div>
         <div style={{ fontSize: 11, color: "var(--fg-subtle)", fontFamily: "var(--font-mono)" }}>
-          v2026.05 · São Paulo, Brasil
+          v2026.05 · Aracaju, Brasil
         </div>
       </div>
       <div className="auth-form-wrap">
@@ -492,7 +492,7 @@ function OnbStep1() {
       </div>
       <div className="field">
         <label className="field-label">Cidade / UF</label>
-        <input className="input input-lg" defaultValue="São Paulo / SP" />
+        <input className="input input-lg" defaultValue="Aracaju / SP" />
       </div>
     </div>
   );
@@ -523,7 +523,7 @@ function OnbStep2() {
       </div>
       <div className="field">
         <label className="field-label">Descrição pública</label>
-        <textarea className="input input-lg" rows="3" style={{ resize: "vertical" }} defaultValue="Banca full-service com 18 anos de atuação em contencioso empresarial, trabalhista e tributário. Sede em São Paulo, operação nacional."></textarea>
+        <textarea className="input input-lg" rows="3" style={{ resize: "vertical" }} defaultValue="Banca full-service com 18 anos de atuação em contencioso empresarial, trabalhista e tributário. Sede em Aracaju, operação nacional."></textarea>
       </div>
     </div>
   );

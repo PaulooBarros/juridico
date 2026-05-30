@@ -1,10 +1,6 @@
 # Leea — Sistema de Gestão para Escritórios de Advocacia
 
-## O que é
-
-Leea é um SaaS B2B para escritórios de advocacia brasileiros. Substitui planilhas, WhatsApp e pastas no computador por um sistema centralizado de gestão de casos, clientes, prazos, documentos e financeiro.
-
-Está em **beta privado** — acesso fechado com convite, sem cobrança ainda.
+SaaS B2B para escritórios de advocacia brasileiros. Substitui planilhas e WhatsApp por gestão centralizada de casos, clientes, prazos, documentos e financeiro. Está em **beta privado** — acesso fechado com convite, sem cobrança ainda.
 
 ---
 
@@ -22,400 +18,190 @@ Está em **beta privado** — acesso fechado com convite, sem cobrança ainda.
 | Google Calendar | googleapis |
 | Deploy | Vercel |
 | Icons | Lucide React |
-| Editor de texto rico | TipTap (`@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`) |
-| Gráficos | Recharts (mesma base do shadcn/ui charts) |
-
-**Importante sobre autenticação:** O projeto usa **Better Auth**, não o Supabase Auth nativo. Isso afeta como o RLS funciona — `auth.uid()` retorna NULL. O RLS usa uma função customizada `get_user_escritorio_ids()` que lê o header `x-user-id` injetado pelo client Supabase. O service role key no servidor bypassa o RLS completamente.
+| Editor rico | TipTap (`@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`) |
+| Gráficos | Recharts |
 
 ---
 
-## Estrutura de pastas relevante
+## Notas críticas de arquitetura
 
-```
-src/
-├── app/
-│   ├── (app)/              # Área autenticada
-│   │   ├── dashboard/
-│   │   ├── casos/
-│   │   │   └── [id]/       # Detalhe: prazos-tab, tarefas-tab, documentos-tab, financeiro-tab
-│   │   ├── clientes/
-│   │   ├── calendario/
-│   │   ├── documentos/
-│   │   ├── financeiro/
-│   │   ├── equipe/
-│   │   ├── notificacoes/
-│   │   ├── perfil/
-│   │   ├── escritorio/
-│   │   ├── configuracoes/
-│   │   ├── planos/
-│   │   └── modelos/
-│   │       ├── page.tsx        # Lista de modelos (grid)
-│   │       ├── novo/           # Criar novo modelo (editor TipTap)
-│   │       └── [id]/
-│   │           ├── page.tsx    # Editar modelo (editor TipTap + metadados)
-│   │           └── usar/       # Preencher variáveis + prévia ao vivo + copiar
-│   ├── (auth)/             # Login, cadastro, convite
-│   ├── (marketing)/        # Landing page
-│   └── api/                # API Routes
-│       ├── auth/           # Better Auth handler
-│       ├── upload/         # avatar, logo, documento
-│       ├── documentos/     # quota, options, delete
-│       ├── google/         # calendar sync
-│       └── waitlist/       # lista de espera beta
-├── lib/
-│   ├── supabase/           # clients + query functions por módulo
-│   │   ├── client.ts       # browser client (createClient, createAuthClient)
-│   │   ├── server.ts       # server client (createClient, createServerAuthClient)
-│   │   ├── casos.ts
-│   │   ├── clientes.ts
-│   │   ├── prazos.ts
-│   │   ├── financeiro.ts
-│   │   ├── equipe.ts
-│   │   ├── escritorio.ts
-│   │   ├── documentos.ts
-│   │   ├── modelos.ts      # CRUD + docToPlainText + extrairVariaveis
-│   │   ├── tarefas.ts
-│   │   └── busca.ts        # busca global (casos, clientes, documentos)
-│   ├── auth.ts             # Better Auth config (server)
-│   ├── auth-client.ts      # Better Auth config (client)
-│   └── utils/index.ts      # formatters, helpers
-├── components/
-│   ├── layout/
-│   │   ├── sidebar.tsx     # re-busca sessão ao navegar (pathname dep)
-│   │   └── topbar.tsx      # re-busca sessão ao navegar (pathname dep)
-│   ├── editor/
-│   │   └── modelo-editor.tsx   # TipTap com toolbar (bold, italic, h2, listas)
-│   ├── dashboard/
-│   │   ├── revenue-chart.tsx   # Recharts: barras de receita mensal
-│   │   └── cases-area-chart.tsx # Recharts: donut de casos por área
-│   ├── onboarding/
-│   │   ├── onboarding-handler.tsx  # Detecta ?welcome=true, controla exibição
-│   │   └── welcome-tour.tsx        # Tour de 6 steps para novo membro
-│   └── search/
-│       └── global-search.tsx   # Ctrl+K: busca global em casos/clientes/documentos
-└── features/
-    └── shared/             # EmptyState, StatusBadge, StatsCard
-produto/                    # Documentos estratégicos (não é código)
-supabase/
-└── migrations/             # SQL migrations em ordem cronológica
-```
+**Better Auth (não Supabase Auth):** `auth.uid()` retorna NULL. O RLS usa `get_user_escritorio_ids()` que lê o header `x-user-id` injetado pelo client Supabase. Service role key no servidor bypassa o RLS completamente.
+
+**RLS:** usar sempre `in (select get_user_escritorio_ids())` — nunca `= any(...)`. A função é SRF e o PostgreSQL não permite SRFs diretas em policy expressions.
+
+**Better Auth → tipos:** `created_by` nas tabelas é `text` (não `uuid`). Novas tabelas devem usar `text` desde o início.
+
+**Multi-tenancy:** Cada escritório é um tenant isolado via `escritorio_id`. Relação usuário → escritório via `membros (user_id, escritorio_id, role)`.
+
+**Clients Supabase:**
+- Browser: `createAuthClient()` — injeta `x-user-id`
+- Servidor: `createClient(userId)` ou `createServerAuthClient()`
 
 ---
 
-## Módulos implementados
+## Módulos
 
-### ✅ Funcional com dados reais
+| Módulo | Status |
+|--------|--------|
+| Auth | ✅ Login, cadastro, recuperação, Google OAuth, convites, roles |
+| Dashboard | ✅ KPIs reais + gráfico receita mensal (barras) + casos por área (donut) |
+| Casos | ✅ CRUD, responsável, abas: prazos / tarefas / documentos / financeiro |
+| Clientes | ✅ CRUD, busca, casos e documentos por cliente |
+| Prazos | ✅ Por caso, horário opcional, sync Google Calendar |
+| Calendário | ✅ Grade mensal, criar prazo no calendário |
+| Documentos | ✅ Upload PDF (10 MB/arquivo, 100 MB/escritório), quota tracker |
+| Financeiro | ✅ Lançamentos (honorários, despesas, reembolsos, adiantamentos), filtros, aba por caso |
+| Modelos | ✅ Editor TipTap, variáveis `{{nome}}`, prévia ao vivo, duplicar templates globais |
+| Busca global | ✅ Ctrl+K: casos, clientes, documentos |
+| Tarefas por caso | ✅ Título, responsável, status, prioridade, data limite |
+| Equipe | ✅ Listar, convidar, revogar, remover |
+| Escritório | ✅ Dados cadastrais, logo |
+| Perfil | ✅ Foto, dados profissionais, áreas |
+| Configurações | ✅ Senha, Google Calendar |
+| Onboarding | ✅ Tour 6 steps via `?welcome=true` |
+| Notificações | ⚠️ Geradas dos prazos, mas persistência em localStorage — precisa migrar para banco |
+| Toast / feedback | ❌ Não implementado — sem confirmação visual de ações |
+| Calculadora de prazos | ❌ Pendente — ver nota técnica abaixo |
+| Planos / billing | ⏸ UI comentada, aguarda CNPJ + Abacate Pay |
 
-| Módulo | Descrição |
-|--------|-----------|
-| **Auth** | Login, cadastro, recuperação de senha, convites por email, roles (owner/admin/lawyer/assistant) |
-| **Dashboard** | KPIs reais + gráfico de receita mensal (Recharts, barras) + gráfico de casos por área (donut). Despesas excluídas do "a receber" |
-| **Casos** | CRUD completo, responsável por caso, abas: prazos, tarefas, documentos, financeiro do caso |
-| **Clientes** | CRUD completo, busca, casos e documentos por cliente |
-| **Prazos** | Por caso, com horário opcional, sync Google Calendar, status |
-| **Calendário** | Grade mensal, criar prazo direto no calendário (clique ou duplo clique) |
-| **Documentos** | Upload PDF (10 MB/arquivo, 100 MB/escritório), visualização inline, quota tracker |
-| **Financeiro** | Lançamentos (honorários, despesas, reembolsos, adiantamentos), filtros, CRUD. Aba financeira por caso |
-| **Modelos** | CRUD completo com editor TipTap. Templates globais da Leea (somente leitura, duplicáveis). Variáveis `{{nome}}` com prévia ao vivo e cópia. Rotas: `/modelos`, `/modelos/novo`, `/modelos/[id]`, `/modelos/[id]/usar` |
-| **Busca global** | Ctrl+K em qualquer tela: busca casos, clientes e documentos em tempo real |
-| **Tarefas por caso** | Aba "Tarefas" no detalhe do caso: título, responsável, status, prioridade, data limite |
-| **Equipe** | Listar membros, convidar por email, revogar convite, remover membro |
-| **Escritório** | Editar dados cadastrais, upload de logo |
-| **Perfil** | Dados profissionais, foto de perfil, áreas de especialidade |
-| **Notificações** | Geradas automaticamente dos prazos (vencido/3 dias/7 dias), leitura persistida em localStorage |
-| **Onboarding** | Tour de boas-vindas de 6 steps para novos membros (ativado via `?welcome=true`) |
-| **Configurações** | Alteração de senha, integração Google Calendar, preferências |
-| **Planos** | Página de beta privado (planos pagos comentados no código) |
+---
 
-### ❌ Não implementado (roadmap)
+## Prioridades do beta
 
-Ver seção de roadmap abaixo.
+### 🔴 Implementar agora
+
+**1. Toast system**
+Sem toasts, o usuário não sabe se ações funcionaram. Implementar globalmente com `sonner` ou `@radix-ui/react-toast`. Cobrir: criar/editar caso, enviar convite, upload de documento, salvar configurações, salvar perfil.
+
+**2. Notificações no banco**
+Hoje persiste leitura em localStorage — se trocar de dispositivo, perde. Migrar para tabela `notificacoes` no Supabase com `lida` (boolean) por usuário. A geração por prazos já funciona, falta persistência real.
+
+**3. Calculadora de prazos**
+Ver nota técnica abaixo. Implementar como modal/drawer em `/prazos` e `/casos/[id]` — o advogado informa data de publicação e a calculadora sugere a data final. Botão "Usar esta data" preenche o campo.
+
+**4. Resend com domínio próprio**
+Domínio será comprado em ~2 dias. Ao configurar:
+- Adicionar domínio no painel do Resend e verificar DNS
+- Trocar remetente de `onboarding@resend.dev` para `nao-responda@[dominio].com.br` (ou similar)
+- Atualizar `BETTER_AUTH_URL` e `trustedOrigins` no Better Auth para o domínio de produção
+- Remover `localhost:3000` de `trustedOrigins` em produção
+- Testar envio de: convite de equipe, recuperação de senha, e-mails do onboarding
+
+**5. Fluxo financeiro — revisão**
+Verificar se o fluxo faz sentido do ponto de vista do usuário:
+- Lançamento de honorários, despesas, adiantamentos e reembolsos
+- Cálculo do saldo do caso (a receber vs. recebido)
+- Dashboard KPI "a receber" exclui despesas? (comportamento atual)
+- Filtros por período e tipo na listagem global de financeiro
+
+### 🟡 Responsividade
+Não há app mobile — testar responsividade no browser (DevTools, viewport mobile).
+Pontos fracos conhecidos:
+- Tabelas de casos/clientes têm `min-w-[680px]` — scroll horizontal em mobile; considerar card view
+- Sidebar em mobile precisa de menu burger funcional
+- Modais de upload podem ser apertados em telas pequenas
+
+---
+
+## Calculadora de prazos — nota técnica
+
+| Área | Contagem |
+|------|----------|
+| Cível (CPC/2015 art. 219) | Dias **úteis** |
+| Trabalhista (CLT) | Dias **corridos** |
+| Criminal (CPP) | Dias **corridos** |
+| Previdenciário judicial | Dias **úteis** |
+| Previdenciário / Tributário administrativo | Dias **corridos** |
+| Tributário judicial | Dias **úteis** |
+
+**Feriados:**
+- Nacionais: BrasilAPI `/feriados/v1/{ano}` (gratuita)
+- Estaduais/municipais/tribunal: cadastrados pelo escritório em `Configurações → Feriados`
+- Nova tabela necessária: `feriados_escritorio (id, escritorio_id, dia, mes, nome, created_at)`
+
+**Recesso forense:** 20/dez → 20/jan — prazos suspensos (exceto trabalhista, criminal urgente, eleitoral).
+
+**Aviso obrigatório:** *"Considerando feriados nacionais + os feriados cadastrados pelo seu escritório. Confirme com o regimento do tribunal."*
+
+**UX:** calculadora assistida — sugere, o advogado confirma. Exibe quais dias foram pulados e por quê. Integrar ao caso: pré-preenche tribunal, área e tipo de processo; advogado só informa a data de publicação.
+
+---
+
+## Modelos de documentos
+
+- `escritorio_id = null` → template global da Leea, somente leitura, duplicável
+- `escritorio_id = <id>` → template privado do escritório, editável
+- Variáveis: `{{nome_variavel}}` extraídas via regex do JSON TipTap
+- `{{data_hoje}}` pré-preenchida automaticamente
+- Fase 2 pendente: auto-preencher variáveis do caso, exportar DOCX
 
 ---
 
 ## Storage
 
-Dois buckets no Supabase Storage:
+| Bucket | Uso | Limite |
+|--------|-----|--------|
+| `imagens` | Avatars e logos | 2 MB, JPG/PNG/WebP |
+| `documentos` | PDFs | 10 MB/arquivo, 100 MB/escritório |
 
-| Bucket | Uso | Limite | Tipos |
-|--------|-----|--------|-------|
-| `imagens` | Avatars de usuários e logos de escritórios | 2 MB/arquivo | JPG, PNG, WebP |
-| `documentos` | PDFs dos casos/clientes | 10 MB/arquivo, 100 MB/escritório | PDF |
-
-Ambos são públicos (URLs diretas funcionam). Segurança enforçada nas API routes via sessão Better Auth.
-
----
-
-## Multi-tenancy
-
-Cada escritório (`escritorios`) é um tenant isolado. Toda query usa `escritorio_id` no RLS.
-
-Relação usuário → escritório via tabela `membros (user_id, escritorio_id, role)`.
-
-Função RLS: `get_user_escritorio_ids()` — lê o `x-user-id` do header da requisição e retorna os IDs de escritório onde o usuário é membro.
-
----
-
-## Convenções de código
-
-- **Server Components** para páginas que fazem fetch inicial (casos, clientes, dashboard)
-- **Client Components** para interatividade (modais, formulários, tabs)
-- Queries no browser usam `createAuthClient()` (injeta `x-user-id`)
-- Queries no servidor usam `createClient(userId)` ou `createServerAuthClient()`
-- Nomes em português para variáveis de domínio (caso, prazo, escritorio)
-- Sem comentários explicando "o quê" — só comentários para "por quê" não óbvio
-- Sem mock data nas páginas de produção
-- Gráficos do dashboard são Client Components que recebem dados processados do Server Component como props — sem waterfall
+Ambos públicos. Segurança via sessão Better Auth nas API routes.
 
 ---
 
 ## Migrations SQL
 
-Localizadas em `supabase/migrations/` em ordem cronológica.
-Devem ser rodadas manualmente no Supabase SQL Editor (projeto não usa Supabase CLI).
-
-| Arquivo | Conteúdo |
-|---------|----------|
-| `20260525181559_schema_inicial.sql` | Tabelas base: escritorios, membros, clientes |
-| `20260525182538_fix_membros_rls_recursion.sql` | Fix de recursão infinita no RLS de membros |
-| `20260525182854_rpc_criar_escritorio.sql` | RPC para criação atômica de escritório + membro owner |
-| `20260525183736_clientes.sql` | Tabela clientes + RLS |
-| `20260525190000_casos.sql` | Tabela casos + RLS |
-| `20260525195000_equipe_rpc.sql` | RPCs de equipe (convite, aceite) |
-| `20260525210000_prazos_google.sql` | Tabela prazos + google_tokens |
-| `20260526000000_transacoes.sql` | Tabela transações financeiras |
-| `20260526100000_better_auth.sql` | Tabelas do Better Auth (user, session, account, verification) |
-| `20260526200000_rls_better_auth.sql` | RLS nas tabelas Better Auth |
-| `20260527000000_waitlist.sql` | Tabela waitlist (lista de espera beta) |
-| `20260527010000_storage_imagens.sql` | Bucket imagens + policies |
-| `20260527020000_documentos.sql` | Tabela documentos + bucket documentos |
-| `20260527030000_prazos_hora.sql` | Coluna `hora` (opcional) em prazos |
-| `20260529000000_modelos.sql` | Tabela modelos + RLS + trigger updated_at + RPC incrementar_uso_modelo |
-| `20260529000001_modelos_seed.sql` | 5 templates globais da Leea (escritorio_id = null) |
-
-**Atenção RLS:** usar sempre `in (select get_user_escritorio_ids())` — nunca `= any(get_user_escritorio_ids())`. A função é SRF e o PostgreSQL não permite SRFs diretas em policy expressions.
-
-**Atenção Better Auth:** `created_by` nas tabelas é `text` (não `uuid`). A migration `20260526100000_better_auth.sql` converteu todas as tabelas — novas tabelas devem já usar `text` desde o início.
+Em `supabase/migrations/` — rodadas manualmente no Supabase SQL Editor (sem CLI).
+Última migration: `20260529000001_modelos_seed.sql` (5 templates globais da Leea).
 
 ---
 
-## Roadmap — próximas versões
+## Convenções de código
 
-### v2 do beta — ✅ concluído
-
-Todos os itens da v2 foram implementados, exceto integração com tribunal:
-
-| Item | Status |
-|------|--------|
-| Onboarding do segundo usuário | ✅ Tour de 6 steps via `?welcome=true` |
-| Responsável pelo caso | ✅ Campo `responsavel_id` em casos |
-| Tarefas por caso | ✅ Aba Tarefas no detalhe do caso |
-| Busca global Ctrl+K | ✅ Casos, clientes, documentos |
-| Modelos de documentos | ✅ Editor TipTap, variáveis, prévia ao vivo |
-| Casos → aba Financeiro | ✅ Lançamentos por caso |
-| Dashboard com gráficos | ✅ Receita mensal + casos por área (Recharts) |
-| Autocomplete CNPJ/CPF | ✅ BrasilAPI |
-| CEP automático | ✅ BrasilAPI |
-| Tipo de processo | ✅ Físico/eletrônico no caso |
-| **Integração com tribunal** | ✅ DataJud (CNJ) — aba Movimentações + auto-fill nos formulários |
-| **Perfil do usuário** | ❌ Melhorias: preferências, leitura de notificações no banco (hoje localStorage) |
-| **Notificações por email** | ❌ Prazos críticos enviados por email via Resend (já integrado) |
-| **Calculadora de prazos** | ❌ Ver nota técnica abaixo |
-
-### Modelos de documentos — arquitetura implementada
-
-**Ownership:**
-- `escritorio_id = null` → template global da Leea, somente leitura, duplicável
-- `escritorio_id = <id>` → template privado do escritório, editável
-
-**Rotas:**
-- `/modelos` — lista em grid, filtros por categoria
-- `/modelos/novo` — criar template (editor TipTap + metadados na sidebar)
-- `/modelos/[id]` — editar template (mesmo layout, sidebar mostra variáveis detectadas)
-- `/modelos/[id]/usar` — preencher variáveis, prévia ao vivo com destaques, copiar texto
-
-**Variáveis:** sintaxe `{{nome_variavel}}`. Extraídas via regex do JSON do TipTap. `{{data_hoje}}` pré-preenchida automaticamente. Na prévia, variáveis pendentes aparecem em âmbar, preenchidas em cor primária.
-
-**Fase 2 (pendente):** auto-preencher variáveis do caso quando aberto dentro de `/casos/[id]`, exportar como DOCX.
-
-### v3 / diferencial competitivo
-
-- **Portal do cliente** — área separada onde o cliente final faz login e acompanha seus casos e documentos
-- **Calculadora de prazos integrada ao caso** — ver nota técnica abaixo; diferencial vs. Prazo Fácil: abre pré-preenchida com tribunal, área e tipo de processo do caso — o advogado só informa a data de publicação; exibe quais dias foram pulados e por quê
-- **Cálculo de juros no financeiro** — simular valor atualizado de causa ou honorários em atraso; índices via API do Banco Central (gratuita): SELIC, TR, IPCA, INPC; integrado ao módulo financeiro e ao valor da causa no caso
-- **Informativos de tribunal por casos ativos** — feed de avisos e suspensões filtrado pelos tribunais dos casos ativos do escritório (não o tribunal inteiro); fonte: RSS ou página de avisos de cada TJ/TRT; evita que o advogado monitore manualmente
-- **Notificações por email** — prazos críticos enviados por email (via Resend, já integrado)
-- **Relatórios exportáveis** — PDF/CSV de financeiro, casos, clientes
-
-### v4 / IA — quando implementar
-
-**Decisão técnica:** usar **Gemini 2.0 Flash** (Google) + **Groq Whisper** para transcrição. Ambos gratuitos no free tier — viável para beta sem custo. Estrutura deve abstrair o provedor para trocar facilmente no futuro (OpenAI, Claude API, etc.).
-
-**Arquitetura planejada:**
-- `src/lib/ai/provider.ts` — abstração única com funções: `resumirDocumento`, `transcreverAudio`, `gerarMinuta`, `extrairDadosProcessuais`
-- Features de IA desabilitadas por padrão, ativadas por escritório via flag `ai_habilitado` no banco
-- Nunca acoplar diretamente ao Gemini nas pages/components — sempre passar pela abstração
-
-**Features planejadas:**
-
-- **Resumo automático de PDF** — manda o PDF direto para o Gemini (suporta multimodal); resultado vira nota interna no caso; ativado no detalhe do documento com botão "Resumir com IA"
-- **Transcrição de áudio vinculada ao caso** — advogado sobe áudio da audiência/reunião no caso; transcrição via Groq Whisper (gratuito, rápido); resultado vira nota interna pesquisável; resolve o problema do áudio que nunca vira texto
-- **Geração de minuta** — a partir dos dados do caso (partes, área, pedidos), Gemini gera rascunho de petição/contrato como ponto de partida; salvo como documento rascunho no caso
-- **Extração de dados processuais** — manda PDF de intimação/decisão, extrai número do processo, partes, prazo e próxima data automaticamente; preenche campos do caso
-
-**Provedores:**
-| Uso | Provedor | Custo |
-|-----|---------|-------|
-| Texto / análise / geração | Gemini 2.0 Flash | Grátis (1.500 req/dia) |
-| Transcrição de áudio | Groq Whisper | Grátis (tier generoso) |
-| Fallback pago futuro | Claude API / OpenAI | Pago, quando escalar |
-
-#### Nota técnica: Calculadora de prazos
-
-Cada área do direito tem regra própria de contagem — não pode ser caixa preta.
-
-| Área | Base | Contagem |
-|------|------|----------|
-| Cível | CPC/2015 art. 219 | Dias **úteis** |
-| Trabalhista | CLT | Dias **corridos** |
-| Criminal | CPP | Dias **corridos** |
-| Previdenciário judicial | CPC | Dias **úteis** |
-| Previdenciário administrativo | Lei 9.784/99 | Dias **corridos** |
-| Tributário judicial | CPC | Dias **úteis** |
-| Tributário administrativo | Decreto 70.235/72 | Dias **corridos** |
-| Eleitoral | CE | Dias **corridos** (às vezes horas) |
-
-**Fontes de feriados — decisão de arquitetura:**
-
-| Tipo | Fonte | Motivo |
-|------|-------|--------|
-| Nacionais | BrasilAPI `/feriados/v1/{ano}` | API oficial, gratuita, confiável |
-| Estaduais | Cadastrados pelo escritório | Hardcoded é arriscado — leis municipais/estaduais mudam |
-| Municipais | Cadastrados pelo escritório | 5.570 municípios, datas móveis, portarias locais |
-| Específicos do tribunal | Cadastrados pelo escritório | Portarias internas, impossível de manter externamente |
-
-**Feriados do escritório** — gerenciados em `Configurações → Feriados`:
-- Escritório cadastra uma vez: data + nome
-- São considerados em **todos** os cálculos automaticamente
-- Nova tabela: `feriados_escritorio (id, escritorio_id, dia, mes, nome, created_at)`
-- O sistema nunca assume feriados que não controla — evita prazo errado silencioso
-
-**Aviso obrigatório na calculadora:**
-> *"Considerando feriados nacionais + os feriados cadastrados pelo seu escritório. Confirme com o regimento do tribunal."*
-
-**Outras complexidades:**
-- Recesso forense: 20/dez → 20/jan — prazos **suspensos** (não aplica a trabalhista, criminal urgente e eleitoral)
-- Prazos eleitorais contados em horas — fora do escopo v2
-- **Nunca automatizar** prazos fatais (prescrição, decadência) sem confirmação explícita
-
-**Abordagem de implementação:**
-- Calculadora **assistida** — sugere, o advogado confirma
-- Pré-seleciona dias úteis/corridos com base na área do caso
-- Exibe raciocínio: quais dias foram pulados e por quê
-- Botão "Usar esta data" preenche o campo de data do prazo
-
-### Monetização — quando tiver CNPJ + investimento
-
-**Bloqueador:** Abacate Pay exige CNPJ para criar conta de merchant. CNPJ vem com o primeiro investimento. Até lá, beta é gratuito.
-
-**Referência técnica:** `abacatepay.txt` na raiz do projeto — documentação formatada para LLM, basta passar o arquivo no contexto na hora de implementar.
-
-**O que o Abacate Pay oferece que usaremos:**
-- **Assinaturas recorrentes** (`/subscriptions`) — cobrança mensal/anual automática via cartão
-- **Checkout hospedado** (`/checkouts`) — página de pagamento pronta, sem implementar formulário de cartão
-- **Webhooks com HMAC** — eventos assinados: `subscription.completed`, `subscription.cancelled`, `subscription.renewed`, `subscription.trial_started`
-- **Cupons** (`/coupons`) — descontos para beta testers e early adopters
-- **TrustMRR** — API pública para exibir MRR na landing page (prova social de crescimento)
-
-**Produtos a criar no Abacate Pay:**
-
-| Produto | Preço | Cycle |
-|---------|-------|-------|
-| Leea Starter Mensal | R$ 8.900 (centavos) | MONTHLY |
-| Leea Pro Mensal | R$ 18.900 (centavos) | MONTHLY |
-| Leea Starter Anual | R$ 89.000 (centavos) | ANNUALLY |
-| Leea Pro Anual | R$ 178.000 (centavos) | ANNUALLY |
-
-**API routes a criar na Leea:**
-- `POST /api/billing/checkout` — cria checkout de assinatura e retorna URL de redirecionamento
-- `POST /api/billing/webhook` — recebe eventos do Abacate Pay; verifica HMAC; atualiza `escritorios.plano`
-- `GET /api/billing/status` — retorna status da assinatura do escritório atual
-
-**Fluxo completo:**
-1. Escritório cria conta → 14 dias de trial (campo `trial_ends_at` na tabela `escritorios`)
-2. Trial expira → redireciona para `/planos` com banner
-3. Usuário escolhe plano → `POST /api/billing/checkout` → redireciona para Abacate Pay
-4. Pagamento confirmado → webhook `subscription.completed` → `escritorios.plano = 'starter'` ou `'pro'`
-5. Cancelamento → webhook `subscription.cancelled` → `escritorios.plano = 'starter'` (downgrade, não bloqueia)
-6. Renovação → webhook `subscription.renewed` → mantém plano ativo
-
-**Código já existente:**
-- Planos Starter/Pro/Enterprise estão em `src/app/(app)/planos/page.tsx` — comentados, prontos para descomentar
-- Campo `plano` já existe na tabela `escritorios`
-
-### v5 / futuro distante
-
-Itens identificados nos documentos estratégicos (`produto/`) que têm valor real mas exigem escala ou maturidade de produto que ainda não temos.
-
-- **Benchmark anônimo** — comparar métricas do escritório (casos ganhos/perdidos, tempo médio de resolução, receita por área) com média agregada anônima de outros escritórios na plataforma; cria lock-in por dados que não existem fora da Leea
-- **Análise de padrões dos casos** — taxa de sucesso por área/juiz/vara, tempo médio de resolução, sazonalidade de prazos; dashboards que o advogado não consegue ter com planilha
-- **API pública** — para escritórios maiores integrarem a Leea com sistemas próprios (ERP, CRM, contabilidade); abre canal enterprise
-- **Self-hosted / on-premise** — para escritórios grandes com compliance rigoroso (dados não podem sair da infraestrutura do cliente); exige Supabase self-hosted + Docker
-- **Backup automático agendado** — exportação periódica automática (semanal/mensal) dos dados do escritório para email ou storage externo; mitiga o risco de dependência de infra
-- **Comunidade e educação** — conteúdo jurídico, webinars, grupo de usuários; o que o Clio fez com a Clio Cloud Conference para criar lock-in não-técnico e canal de aquisição orgânico
-- **Contrato anual com desconto** — opção de pagamento anual (~2 meses grátis); melhora previsibilidade de caixa e reduz churn; implementar quando tiver 20+ clientes pagantes
-
-### Integrações futuras
-
-| Integração | Valor | Complexidade | API |
-|------------|-------|-------------|-----|
-| DataJud (CNJ) | Monitorar movimentações processuais | Média | `api-publica.datajud.cnj.jus.br` — chave pública disponível |
-| BrasilAPI feriados | Calculadora de prazos | Baixa | `brasilapi.com.br/api/feriados/v1/{ano}` — sem auth |
-| BrasilAPI CNPJ | Autocomplete de cliente PJ | Baixa | `brasilapi.com.br/api/cnpj/v1/{cnpj}` — sem auth |
-| BrasilAPI CEP | Endereço automático | Baixa | `brasilapi.com.br/api/cep/v2/{cep}` — sem auth |
-| JusBrasil API | Scraping de tribunal estadual | Alta | Pago |
-| WhatsApp Business | Lembrete de prazo e documentos para cliente | Alta | Meta API |
-| Stripe | Cobrança dos planos pagos | Média | stripe.com |
-| Escavador | Monitoramento processual alternativo | Média | Freemium |
+- Server Components para fetch inicial; Client Components para interatividade
+- Nomes em português para variáveis de domínio (caso, prazo, escritorio)
+- Sem comentários explicando "o quê" — só "por quê" não óbvio
+- Sem mock data em produção
+- Gráficos do dashboard recebem dados do Server Component como props — sem waterfall
 
 ---
 
-## Contexto de negócio
+## Monetização (pendente CNPJ)
 
-- **Produto:** SaaS para escritórios de advocacia brasileiros (1-50 advogados)
+Abacate Pay — documentação em `abacatepay.txt`. Bloqueador: CNPJ necessário para conta merchant. Beta é gratuito até lá. Planos na UI já estão comentados em `/planos/page.tsx`; campo `plano` já existe em `escritorios`.
+
+---
+
+## Roadmap resumido
+
+**v3:** Portal do cliente, calculadora de prazos integrada ao caso, cálculo de juros (SELIC/IPCA via Banco Central), informativos de tribunal por casos ativos, notificações por email.
+
+**v4 (IA):** Gemini 2.0 Flash + Groq Whisper. Abstração em `src/lib/ai/provider.ts`. Features: resumo de PDF, transcrição de áudio, geração de minuta, extração de dados processuais. Nunca acoplar diretamente ao Gemini nas pages — sempre via abstração.
+
+**v5:** Benchmark anônimo entre escritórios, API pública, self-hosted, backup agendado.
+
+---
+
+## Negócio
+
+- **Produto:** SaaS para escritórios de advocacia brasileiros (1–50 advogados)
 - **Estágio:** Beta privado, um escritório em teste
-- **Modelo:** Assinatura mensal por escritório (planos Starter/Pro/Enterprise — comentados enquanto em beta)
-- **Precificação prevista:** R$ 89 (Starter, até 2 advogados) / R$ 189 (Pro, até 8) / Enterprise sob consulta
+- **Precificação prevista:** R$ 89/mês (Starter, até 2 advogados) / R$ 189/mês (Pro, até 8)
 - **Concorrentes:** Advbox, Astrea, Jurídico Certo, PJe Office
-- **Diferencial atual:** Design moderno, UX simples, multi-tenant com isolamento real
-- **Diferencial defensável a construir:** Integração com tribunal + IA aplicada a documentos jurídicos
-
-### Documentos estratégicos
-
-Ver pasta `produto/` para análises de negócio:
-- `churn-email-honesto.md` — perspectiva de cliente que cancelou
-- `vc-due-diligence.md` — análise de VC cético: buracos no modelo
-- `pontos-unicos-de-falha.md` — auditoria de vulnerabilidades críticas
-- `cenarios-mudanca-mercado.md` — 3 mudanças de mercado que podem danificar o modelo
+- **Diferencial atual:** Design moderno, UX simples, multi-tenant real
+- **Diferencial a construir:** Integração com tribunal + IA em documentos
+- Documentos estratégicos em `produto/`
 
 ---
 
-## Comandos úteis
+## Comandos
 
 ```bash
-# Desenvolvimento
 npm run dev
-
-# Build
 npm run build
-
-# Type check
 npx tsc --noEmit
 ```
 
----
-
-## Variáveis de ambiente necessárias
+## Variáveis de ambiente
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=

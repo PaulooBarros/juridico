@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, MailCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { LeeaLogo } from '@/components/ui/leea-logo'
 type Step = 'email' | 'enviado'
 
 export default function EsqueciSenhaPage() {
@@ -40,10 +41,8 @@ export default function EsqueciSenhaPage() {
       {/* Left — brand side */}
       <div className="hidden lg:flex flex-col justify-between bg-muted border-r border-border px-12 py-12">
         <Link href="/login" className="flex items-center gap-2.5">
-          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
-            L
-          </div>
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">Leea</span>
+          <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-7 h-7" />
+          <LeeaLogo variant="light" height={20} />
         </Link>
 
         <div>
@@ -54,16 +53,16 @@ export default function EsqueciSenhaPage() {
           <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mt-6">— Leea</p>
         </div>
 
-        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · São Paulo, Brasil</p>
+        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · Aracaju, Brasil</p>
       </div>
 
       {/* Right — form */}
       <div className="flex items-center justify-center px-8 py-16">
         <div className="w-full max-w-[360px]">
           {/* Mobile brand */}
-          <Link href="/login" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">V</div>
-            <span className="font-serif font-medium text-[15px]">Vetor <em className="text-primary not-italic">Jurídico</em></span>
+          <Link href="/login" className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-6 h-6" />
+            <LeeaLogo variant="light" height={20} />
           </Link>
 
           {step === 'email' && (

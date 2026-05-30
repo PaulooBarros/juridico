@@ -6,6 +6,7 @@ import { Check, Briefcase, Users, Calendar, FileText, DollarSign, UsersRound, Qu
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { WaitlistForm } from './waitlist-form'
 import { DashboardPreview } from './dashboard-preview'
+import { LeeaLogo } from '@/components/ui/leea-logo'
 
 // ─── Variants ────────────────────────────────────────────────────────────────
 
@@ -99,8 +100,13 @@ export default function LandingPage() {
         className="sticky top-0 z-10 bg-background border-b border-border px-4 md:px-10 flex items-center justify-between h-[54px]"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">L</div>
-          <span className="font-serif font-medium text-[16px] tracking-[-0.01em]">Leea</span>
+          <img
+            src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png"
+            alt=""
+            className="w-[22px] h-[22px]"
+          />
+          <LeeaLogo variant="light" height={18} className="dark:hidden" />
+          <LeeaLogo variant="dark"  height={18} className="hidden dark:block" />
           <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.06em] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full">
             <Lock size={8} /> Beta privado
           </span>
@@ -397,9 +403,16 @@ export default function LandingPage() {
         className="px-4 md:px-10 py-12">
         <div className="max-w-[1080px] mx-auto flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 flex-wrap">
           <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">L</div>
-              <span className="font-serif font-medium text-[15px]">Leea · Software Jurídico</span>
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png"
+                alt="Leea"
+                className="w-8 h-8"
+              />
+              <div>
+                <LeeaLogo variant="light" height={18} className="dark:hidden" />
+                <LeeaLogo variant="dark"  height={18} className="hidden dark:block" />
+              </div>
             </div>
             <p className="font-serif italic text-[15px] text-muted-foreground max-w-[32ch]">
               &ldquo;Quando tudo está sob controle, a advocacia fica inevitável.&rdquo;
@@ -413,7 +426,7 @@ export default function LandingPage() {
               <span>·</span>
               <a href="#" className="hover:text-foreground transition-colors">LGPD</a>
             </div>
-            <p className="font-mono text-[11px] text-muted-foreground">© 2026 Leea · São Paulo, Brasil</p>
+            <p className="font-mono text-[11px] text-muted-foreground">© 2026 Leea · Aracaju, Brasil</p>
           </div>
         </div>
       </motion.footer>
