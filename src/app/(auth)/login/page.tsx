@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
+import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   return (
@@ -21,18 +23,16 @@ function LoginContent() {
   const nextParam = searchParams.get('next')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setErro('')
     setLoading(true)
 
     const { error } = await authClient.signIn.email({ email, password: senha })
 
     if (error) {
-      setErro('E-mail ou senha incorretos.')
+      toast.error('E-mail ou senha incorretos.')
       setLoading(false)
       return
     }
@@ -54,10 +54,8 @@ function LoginContent() {
       {/* Left — brand side */}
       <div className="hidden lg:flex flex-col justify-between border-r border-border px-12 py-12" style={{ backgroundColor: '#1A1714' }}>
         <Link href="/landing" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[4px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-bold text-[16px]">
-            L
-          </div>
-          <span className="font-serif font-medium text-[22px] tracking-[-0.01em]" style={{ color: '#FBFAF6' }}>Leea</span>
+          <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-8 h-8" />
+          <LeeaLogo variant="dark" height={24} />
         </Link>
 
         <div>
@@ -68,16 +66,16 @@ function LoginContent() {
           <p className="font-mono text-[11px] tracking-[0.08em] uppercase mt-6" style={{ color: '#5C554C' }}>— Leea · Software Jurídico</p>
         </div>
 
-        <p className="font-mono text-[11px]" style={{ color: '#5C554C' }}>v2026.05 · São Paulo, Brasil</p>
+        <p className="font-mono text-[11px]" style={{ color: '#5C554C' }}>v2026.05 · Aracaju, Brasil</p>
       </div>
 
       {/* Right — form */}
       <div className="flex items-center justify-center px-8 py-16">
         <div className="w-full max-w-[360px]">
           {/* Mobile brand */}
-          <Link href="/landing" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">V</div>
-            <span className="font-serif font-medium text-[15px]">Vetor <em className="text-primary not-italic">Jurídico</em></span>
+          <Link href="/landing" className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-6 h-6" />
+            <LeeaLogo variant="light" height={20} />
           </Link>
 
           <h1 className="font-serif text-[28px] font-medium tracking-[-0.015em] mb-1.5">Entrar</h1>
@@ -133,10 +131,6 @@ function LoginContent() {
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
             </div>
-
-            {erro && (
-              <p className="text-[12px] text-destructive">{erro}</p>
-            )}
 
             <button
               type="submit"

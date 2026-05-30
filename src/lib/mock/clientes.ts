@@ -4,7 +4,7 @@ export const clientes: Client[] = [
   {
     id: 'cli-001', officeId: 'off-001', type: 'pj', name: 'Construtora Horizonte Ltda',
     document: '12.345.678/0001-90', email: 'juridico@horizonte.com.br', phone: '(11) 3456-7890',
-    address: 'Av. Paulista, 1200, conj. 101', city: 'São Paulo', state: 'SP',
+    address: 'Av. Paulista, 1200, conj. 101', city: 'Aracaju', state: 'SP',
     status: 'active', caseCount: 3, createdAt: '2024-01-15T10:00:00Z',
     notes: 'Cliente de longa data, múltiplos contratos em andamento.',
   },
@@ -23,7 +23,7 @@ export const clientes: Client[] = [
   {
     id: 'cli-004', officeId: 'off-001', type: 'pj', name: 'TechBrasil Sistemas S/A',
     document: '98.765.432/0001-10', email: 'legal@techbrasil.com', phone: '(11) 4000-1234',
-    address: 'Rua Funchal, 700, 5º andar', city: 'São Paulo', state: 'SP',
+    address: 'Rua Funchal, 700, 5º andar', city: 'Aracaju', state: 'SP',
     status: 'active', caseCount: 4, createdAt: '2024-03-01T11:00:00Z',
     notes: 'Demandas trabalhistas recorrentes.',
   },

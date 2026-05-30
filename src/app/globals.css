@@ -11,7 +11,7 @@
     --card-foreground: 28 14% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 28 14% 9%;
-    --primary: 357 62% 27%;             /* #6E1A1E oxblood */
+    --primary: 352 63% 28%;             /* #741a26 vinho — mesma cor do logo */
     --primary-foreground: 46 33% 97%;   /* #FBFAF6 warm white */
     --secondary: 42 18% 91%;            /* #EFEDE6 bg-sunken */
     --secondary-foreground: 28 14% 9%;
@@ -23,7 +23,7 @@
     --destructive-foreground: 46 33% 97%;
     --border: 40 9% 85%;                /* effective from rgba(20,16,12,0.10) */
     --input: 40 9% 85%;
-    --ring: 357 62% 27%;
+    --ring: 352 63% 28%;
     --warning: 38 100% 27%;             /* #8A5A00 */
     --warning-foreground: 46 33% 97%;
     --success: 134 38% 30%;             /* #2F6A3A */

@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes'
 import { usePathname } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Tooltip } from '@/components/ui/tooltip'
 import { getInitials } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
@@ -28,7 +29,7 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen, on
 
   useEffect(() => {
     setMounted(true)
-    authClient.getSession().then(({ data }) => {
+    authClient.getSession({ fetchOptions: { cache: 'no-store' } }).then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
       setUserAvatar(user?.image ?? null)
@@ -90,31 +91,36 @@ export function Topbar({ title, breadcrumb, action, sidebarWidth, onMenuOpen, on
           )}
 
           {/* Search */}
-          <button
-            onClick={onSearchOpen}
-            className="hidden sm:flex items-center gap-2 h-[30px] px-2 rounded-[5px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-            title="Busca global (Ctrl+K)"
-          >
-            <Search size={15} />
-            <span className="text-[11px] font-mono hidden md:block">Ctrl+K</span>
-          </button>
+          <Tooltip content="Busca global (Ctrl+K)" side="bottom">
+            <button
+              onClick={onSearchOpen}
+              className="hidden sm:flex items-center gap-2 h-[30px] px-2 rounded-[5px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <Search size={15} />
+              <span className="text-[11px] font-mono hidden md:block">Ctrl+K</span>
+            </button>
+          </Tooltip>
 
           {/* Notifications */}
-          <Link
-            href="/notificacoes"
-            className="relative w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          >
-            <Bell size={15} />
-          </Link>
+          <Tooltip content="Notificações" side="bottom">
+            <Link
+              href="/notificacoes"
+              className="relative w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <Bell size={15} />
+            </Link>
+          </Tooltip>
 
           {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-            aria-label="Alternar tema"
-          >
-            {mounted && (theme === 'light' ? <Moon size={15} /> : <Sun size={15} />)}
-          </button>
+          <Tooltip content={mounted ? (theme === 'light' ? 'Modo escuro' : 'Modo claro') : 'Tema'} side="bottom">
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="w-[30px] h-[30px] rounded-[5px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              aria-label="Alternar tema"
+            >
+              {mounted && (theme === 'light' ? <Moon size={15} /> : <Sun size={15} />)}
+            </button>
+          </Tooltip>
 
           {/* Separator */}
           <div className="w-px h-[18px] bg-border mx-1" />

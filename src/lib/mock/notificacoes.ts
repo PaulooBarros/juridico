@@ -75,7 +75,7 @@ export const notificacoes: Notification[] = [
     id: 'not-011', officeId: 'off-001', userId: 'usr-002',
     type: 'case_updated', priority: 'medium',
     title: 'Reclamação trabalhista — Designação de audiência',
-    message: 'Audiência de instrução designada para 22/05/2024 às 14h na 1ª VT de São Paulo.',
+    message: 'Audiência de instrução designada para 22/05/2024 às 14h na 1ª VT de Aracaju.',
     read: true, link: '/casos/cas-002', createdAt: '2024-04-15T10:30:00Z',
   },
   {

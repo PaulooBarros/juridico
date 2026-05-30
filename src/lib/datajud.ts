@@ -81,7 +81,7 @@ const TRIBUNAL_MAP: Record<string, string> = {
   '6.23': 'trerr',  // Roraima
   '6.24': 'tresc',  // Santa Catarina
   '6.25': 'trese',  // Sergipe
-  '6.26': 'tresp',  // São Paulo
+  '6.26': 'tresp',  // Aracaju
   '6.27': 'treto',  // Tocantins
 
   // Justiça Militar da União
@@ -116,7 +116,7 @@ const TRIBUNAL_MAP: Record<string, string> = {
   '8.23': 'tjrr',  // Roraima
   '8.24': 'tjsc',  // Santa Catarina
   '8.25': 'tjse',  // Sergipe
-  '8.26': 'tjsp',  // São Paulo
+  '8.26': 'tjsp',  // Aracaju
   '8.27': 'tjto',  // Tocantins
 
   // Justiça Militar Estadual

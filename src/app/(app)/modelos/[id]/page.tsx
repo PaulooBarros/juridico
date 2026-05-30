@@ -6,6 +6,7 @@ import {
   ArrowLeft, Wand2, Save, Loader2, Globe, CopyPlus,
   Check, Hash,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -44,7 +45,6 @@ export default function ModeloEditorPage({ params }: { params: { id: string } })
   const [loading, setLoading]     = useState(true)
   const [saving, setSaving]         = useState(false)
   const [saved, setSaved]           = useState(false)
-  const [erro, setErro]             = useState('')
   const [duplicando, setDuplicando] = useState(false)
 
   // Form state
@@ -73,15 +73,16 @@ export default function ModeloEditorPage({ params }: { params: { id: string } })
   const variaveis = extrairVariaveis(conteudo)
 
   async function salvar() {
-    if (!nome.trim()) { setErro('Nome é obrigatório.'); return }
-    setErro(''); setSaving(true)
+    if (!nome.trim()) { toast.error('Nome é obrigatório.'); return }
+    setSaving(true)
     try {
       const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
       await atualizarModelo(params.id, { nome, categoria, area: area || undefined, descricao: descricao || undefined, conteudo, tags })
+      toast.success('Modelo salvo')
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
     } finally {
       setSaving(false)
     }
@@ -177,10 +178,6 @@ export default function ModeloEditorPage({ params }: { params: { id: string } })
           <Globe size={13} />
           Template global da Leea — somente leitura. Clique em "Duplicar para editar" para criar uma cópia customizável.
         </div>
-      )}
-
-      {erro && (
-        <p className="text-xs text-destructive">{erro}</p>
       )}
 
       {/* Corpo: sidebar + editor */}

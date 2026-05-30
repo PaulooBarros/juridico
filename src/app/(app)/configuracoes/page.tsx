@@ -1,21 +1,22 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
+// import { Badge } from '@/components/ui/badge'  // usado só no plano — comentado junto
 import { Loader2, CalendarDays, CheckCircle2, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { authClient, getSessionUserId } from '@/lib/auth-client'
-import { getMeuEscritorio, type Escritorio } from '@/lib/supabase/escritorio'
+// import { getMeuEscritorio, type Escritorio } from '@/lib/supabase/escritorio'  // plano comentado
 
-const PLAN_LABEL: Record<string, string> = {
-  starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise',
-}
+// const PLAN_LABEL: Record<string, string> = {  // plano comentado
+//   starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise',
+// }
 
 export default function ConfiguracoesPage() {
   const [notifications, setNotifications] = useState({
@@ -27,14 +28,12 @@ export default function ConfiguracoesPage() {
   const [novaSenha,      setNovaSenha]      = useState('')
   const [confirmSenha,   setConfirmSenha]   = useState('')
   const [savingPass,     setSavingPass]     = useState(false)
-  const [erroPass,       setErroPass]       = useState('')
-  const [sucessoPass,    setSucessoPass]    = useState(false)
 
-  // Plano
-  const [escritorio,     setEscritorio]     = useState<Escritorio | null>(null)
-  const [loadingPlano,   setLoadingPlano]   = useState(true)
-  const [membrosCount,   setMembrosCount]   = useState(0)
-  const [casosCount,     setCasosCount]     = useState(0)
+  // Plano — comentado até billing estar disponível
+  // const [escritorio,   setEscritorio]   = useState<Escritorio | null>(null)
+  // const [loadingPlano, setLoadingPlano] = useState(true)
+  // const [membrosCount, setMembrosCount] = useState(0)
+  // const [casosCount,   setCasosCount]   = useState(0)
 
   // Integrações
   const [googleConectado,   setGoogleConectado]   = useState(false)
@@ -42,23 +41,24 @@ export default function ConfiguracoesPage() {
   const [disconnecting,     setDisconnecting]     = useState(false)
   const [googleMensagem,    setGoogleMensagem]    = useState('')
 
-  useEffect(() => {
-    async function carregarPlano() {
-      const esc = await getMeuEscritorio()
-      setEscritorio(esc)
-      if (esc) {
-        const supabase = createClient()
-        const [{ count: mc }, { count: cc }] = await Promise.all([
-          supabase.from('membros').select('*', { count: 'exact', head: true }).eq('escritorio_id', esc.id),
-          supabase.from('casos').select('*', { count: 'exact', head: true }).eq('escritorio_id', esc.id),
-        ])
-        setMembrosCount(mc ?? 0)
-        setCasosCount(cc ?? 0)
-      }
-      setLoadingPlano(false)
-    }
-    carregarPlano()
-  }, [])
+  // useEffect plano — comentado até billing estar disponível
+  // useEffect(() => {
+  //   async function carregarPlano() {
+  //     const esc = await getMeuEscritorio()
+  //     setEscritorio(esc)
+  //     if (esc) {
+  //       const supabase = createClient()
+  //       const [{ count: mc }, { count: cc }] = await Promise.all([
+  //         supabase.from('membros').select('*', { count: 'exact', head: true }).eq('escritorio_id', esc.id),
+  //         supabase.from('casos').select('*', { count: 'exact', head: true }).eq('escritorio_id', esc.id),
+  //       ])
+  //       setMembrosCount(mc ?? 0)
+  //       setCasosCount(cc ?? 0)
+  //     }
+  //     setLoadingPlano(false)
+  //   }
+  //   carregarPlano()
+  // }, [])
 
   const [activeTab, setActiveTab] = useState('notificacoes')
 
@@ -118,19 +118,17 @@ export default function ConfiguracoesPage() {
 
   async function handleAlterarSenha(e: React.FormEvent) {
     e.preventDefault()
-    setErroPass(''); setSucessoPass(false)
-    if (!novaSenha) { setErroPass('Informe a nova senha.'); return }
-    if (novaSenha.length < 8) { setErroPass('A senha deve ter pelo menos 8 caracteres.'); return }
-    if (novaSenha !== confirmSenha) { setErroPass('As senhas não coincidem.'); return }
+    if (!novaSenha) { toast.error('Informe a nova senha.'); return }
+    if (novaSenha.length < 8) { toast.error('A senha deve ter pelo menos 8 caracteres.'); return }
+    if (novaSenha !== confirmSenha) { toast.error('As senhas não coincidem.'); return }
     setSavingPass(true)
     try {
       const { error } = await authClient.changePassword({ newPassword: novaSenha, currentPassword: senhaAtual })
       if (error) throw error
       setSenhaAtual(''); setNovaSenha(''); setConfirmSenha('')
-      setSucessoPass(true)
-      setTimeout(() => setSucessoPass(false), 3000)
+      toast.success('Configurações salvas')
     } catch (e: any) {
-      setErroPass(e.message ?? 'Erro ao alterar senha.')
+      toast.error(e.message ?? 'Erro ao alterar senha.')
     } finally {
       setSavingPass(false)
     }
@@ -142,7 +140,7 @@ export default function ConfiguracoesPage() {
         <TabsList>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
-          <TabsTrigger value="plano">Plano</TabsTrigger>
+          {/* <TabsTrigger value="plano">Plano</TabsTrigger> */}
           <TabsTrigger value="integracoes">Integrações</TabsTrigger>
         </TabsList>
 
@@ -228,9 +226,6 @@ export default function ConfiguracoesPage() {
                     placeholder="••••••••" className="h-9 text-[13px]" />
                 </div>
 
-                {erroPass    && <p className="text-[12px] text-destructive">{erroPass}</p>}
-                {sucessoPass && <p className="text-[12px] text-emerald-600">Senha alterada com sucesso.</p>}
-
                 <button type="submit" disabled={savingPass}
                   className="px-4 h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-60">
                   {savingPass ? 'Salvando…' : 'Alterar senha'}
@@ -275,59 +270,11 @@ export default function ConfiguracoesPage() {
           </Card>
         </TabsContent>
 
-        {/* Plano */}
+        {/* Plano — comentado até billing estar disponível
         <TabsContent value="plano" className="space-y-4">
-          {loadingPlano ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 size={18} className="animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Plano atual</CardTitle>
-                    <CardDescription>Gerencie sua assinatura.</CardDescription>
-                  </div>
-                  <Badge variant="secondary" className="text-sm px-3 py-1">
-                    {PLAN_LABEL[escritorio?.plano ?? ''] ?? escritorio?.plano ?? 'Starter'}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Membros',        value: membrosCount,  total: 8,    fmt: (v: number) => `${v} / 8` },
-                    { label: 'Casos ativos',   value: casosCount,    total: 9999, fmt: (v: number) => `${v}` },
-                  ].map(item => (
-                    <div key={item.label} className="space-y-2">
-                      <div className="flex justify-between">
-                        <p className="text-xs text-muted-foreground">{item.label}</p>
-                        <p className="text-xs font-medium">{item.fmt(item.value)}</p>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${Math.min((item.value / item.total) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Precisando de mais recursos?</p>
-                    <p className="text-xs text-muted-foreground">Veja os planos disponíveis e faça upgrade.</p>
-                  </div>
-                  <Link href="/planos" className="px-3 h-8 border border-border rounded-[5px] text-xs text-muted-foreground hover:bg-accent transition-colors flex items-center">
-                    Ver planos →
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          ...
         </TabsContent>
+        */}
 
         {/* Integrações */}
         <TabsContent value="integracoes" className="space-y-4">

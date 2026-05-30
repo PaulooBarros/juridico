@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter, Newsreader, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from 'sonner'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: { default: 'Leea', template: '%s · Leea' },
-  description: 'Quando tudo está sob controle, a advocacia fica inevitável.',
+  description: 'Software jurídico para escritórios de advocacia brasileiros.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +36,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.variable} ${newsreader.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          {children}
+          <TooltipProvider>
+            {children}
+            <Toaster position="bottom-right" richColors closeButton />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

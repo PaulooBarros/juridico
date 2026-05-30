@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
+import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 const AREAS = [
   'Cível', 'Trabalhista', 'Criminal', 'Tributário', 'Família e Sucessões',
@@ -57,7 +59,7 @@ export default function CompletarPerfilPage() {
     } as any)
 
     if (error) {
-      setErro('Não foi possível salvar. Tente novamente.')
+      toast.error('Não foi possível salvar. Tente novamente.')
       setSaving(false)
       return
     }
@@ -82,12 +84,8 @@ export default function CompletarPerfilPage() {
       {/* Left — brand */}
       <div className="hidden lg:flex flex-col justify-between bg-muted border-r border-border px-12 py-12">
         <Link href="/landing" className="flex items-center gap-2.5">
-          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
-            V
-          </div>
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">
-            Vetor <em className="text-primary not-italic">Jurídico</em>
-          </span>
+          <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-7 h-7" />
+          <LeeaLogo variant="light" height={20} />
         </Link>
 
         <div>
@@ -100,16 +98,16 @@ export default function CompletarPerfilPage() {
           </p>
         </div>
 
-        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · São Paulo, Brasil</p>
+        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · Aracaju, Brasil</p>
       </div>
 
       {/* Right — form */}
       <div className="flex items-center justify-center px-8 py-16">
         <div className="w-full max-w-[360px]">
           {/* Mobile brand */}
-          <Link href="/landing" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">V</div>
-            <span className="font-serif font-medium text-[15px]">Vetor <em className="text-primary not-italic">Jurídico</em></span>
+          <Link href="/landing" className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-6 h-6" />
+            <LeeaLogo variant="light" height={20} />
           </Link>
 
           <h1 className="font-serif text-[28px] font-medium tracking-[-0.015em] mb-1.5">Complete seu perfil</h1>

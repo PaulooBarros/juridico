@@ -36,17 +36,32 @@ export async function POST(req: NextRequest) {
 
     const { data: { publicUrl } } = supabase.storage.from('imagens').getPublicUrl(path)
 
+    // Cache-buster: força o browser a buscar a nova imagem em vez de servir a versão em cache
+    // (a URL base é sempre a mesma para o mesmo userId, então sem isso o browser mostra a foto antiga)
+    const freshUrl = `${publicUrl}?t=${Date.now()}`
+
+    // Atualiza diretamente na tabela do Better Auth (service role bypassa RLS)
     const { error: dbError } = await supabase
       .from('user')
-      .update({ image: publicUrl })
+      .update({ image: freshUrl })
       .eq('id', userId)
 
     if (dbError) {
       console.error('[upload/avatar] db error:', dbError)
-      // Não retorna erro — upload funcionou, só a atualização do DB falhou
+      return NextResponse.json({ error: `Falha ao salvar URL da foto: ${dbError.message}` }, { status: 500 })
     }
 
-    return NextResponse.json({ url: publicUrl })
+    // Atualiza também via API do Better Auth para que a sessão retorne o novo valor
+    try {
+      await auth.api.updateUser({
+        body:    { image: freshUrl },
+        headers: req.headers,
+      })
+    } catch (authErr) {
+      console.error('[upload/avatar] auth.api.updateUser error:', authErr)
+    }
+
+    return NextResponse.json({ url: freshUrl })
   } catch (err: any) {
     console.error('[upload/avatar] exception:', err)
     return NextResponse.json({ error: err?.message ?? 'Erro interno' }, { status: 500 })

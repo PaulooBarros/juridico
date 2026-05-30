@@ -1,6 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Loader2, CheckCircle2, Circle, Clock, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
@@ -62,14 +63,13 @@ function TarefaModal({
     data_limite:    tarefa?.data_limite    ?? '',
   })
   const [saving, setSaving] = useState(false)
-  const [erro,   setErro]   = useState('')
 
   const set = (patch: Partial<TarefaInput>) => setForm(p => ({ ...p, ...patch }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.titulo.trim()) { setErro('Título é obrigatório.'); return }
-    setErro(''); setSaving(true)
+    if (!form.titulo.trim()) { toast.error('Título é obrigatório.'); return }
+    setSaving(true)
     try {
       const input = {
         ...form,
@@ -79,13 +79,15 @@ function TarefaModal({
       }
       if (tarefa) {
         await atualizarTarefa(tarefa.id, input)
+        toast.success('Tarefa salva')
         onSalvo({ ...tarefa, ...input, responsavel_nome: membros.find(m => m.user_id === input.responsavel_id)?.nome ?? null })
       } else {
         const criada = await criarTarefa(casoId, input)
+        toast.success('Tarefa salva')
         onSalvo(criada)
       }
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
       setSaving(false)
     }
   }
@@ -151,8 +153,6 @@ function TarefaModal({
             <Textarea value={form.descricao ?? ''} onChange={e => set({ descricao: e.target.value })}
               rows={2} className="text-[13px] resize-none" placeholder="Detalhes da tarefa…" />
           </div>
-
-          {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose}

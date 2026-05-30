@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
+import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 export default function RedefinirSenhaPage() {
   return (
@@ -23,7 +25,6 @@ function RedefinirSenhaContent() {
 
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
   const [ok, setOk] = useState(false)
 
@@ -33,13 +34,12 @@ function RedefinirSenhaContent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!senhaOk || !match) return
-    setErro('')
     setLoading(true)
 
     const { error } = await authClient.resetPassword({ newPassword: senha, token })
 
     if (error) {
-      setErro('Não foi possível redefinir a senha. O link pode ter expirado.')
+      toast.error('Não foi possível redefinir a senha. O link pode ter expirado.')
       setLoading(false)
       return
     }
@@ -54,10 +54,8 @@ function RedefinirSenhaContent() {
       {/* Left — brand side */}
       <div className="hidden lg:flex flex-col justify-between bg-muted border-r border-border px-12 py-12">
         <div className="flex items-center gap-2.5">
-          <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px]">
-            L
-          </div>
-          <span className="font-serif font-medium text-[15px] tracking-[-0.01em]">Leea</span>
+          <img src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png" alt="" className="w-7 h-7" />
+          <LeeaLogo variant="light" height={20} />
         </div>
 
         <div>
@@ -68,7 +66,7 @@ function RedefinirSenhaContent() {
           <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-muted-foreground mt-6">— Leea</p>
         </div>
 
-        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · São Paulo, Brasil</p>
+        <p className="font-mono text-[11px] text-muted-foreground">v2026.05 · Aracaju, Brasil</p>
       </div>
 
       {/* Right — form */}
@@ -126,8 +124,6 @@ function RedefinirSenhaContent() {
                     <p className="text-[11px] text-destructive">As senhas não conferem.</p>
                   )}
                 </div>
-
-                {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
                 <button
                   type="submit"

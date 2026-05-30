@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, Building2, User, Plus, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -217,7 +218,6 @@ function ClienteFormModal({
   const [buscandoCep, setBuscandoCep]   = useState(false)
   const [buscandoCnpj, setBuscandoCnpj] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [erro, setErro]       = useState('')
 
   const set = (patch: Partial<ClienteInput>) => setForm(prev => ({ ...prev, ...patch }))
 
@@ -251,13 +251,14 @@ function ClienteFormModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name.trim()) { setErro('Nome é obrigatório.'); return }
-    setErro(''); setLoading(true)
+    if (!form.name.trim()) { toast.error('Nome é obrigatório.'); return }
+    setLoading(true)
     try {
-      if (editMode) { await atualizarCliente(cliente.id, form) } else { await criarCliente(form) }
+      if (editMode) { await atualizarCliente(cliente.id, form); toast.success('Cliente atualizado') }
+      else { await criarCliente(form); toast.success('Cliente criado') }
       onSalvo()
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
       setLoading(false)
     }
   }
@@ -358,7 +359,7 @@ function ClienteFormModal({
             <div className="grid grid-cols-[1fr_96px] gap-3">
               <F label="Cidade">
                 <Input value={form.city ?? ''} onChange={e => set({ city: e.target.value })}
-                  placeholder="São Paulo" className="h-9 text-[13px]" />
+                  placeholder="Aracaju" className="h-9 text-[13px]" />
               </F>
               <F label="UF">
                 <Select value={form.state || '_none_'} onValueChange={v => set({ state: v === '_none_' ? '' : v })}>
@@ -381,7 +382,6 @@ function ClienteFormModal({
           </SheetBody>
 
           <SheetFooter>
-            {erro && <p className="text-[12px] text-destructive mr-auto">{erro}</p>}
             <button type="button" onClick={onClose}
               className="px-4 h-9 border border-border rounded-[5px] text-[13px] text-muted-foreground hover:bg-accent transition-colors">
               Cancelar

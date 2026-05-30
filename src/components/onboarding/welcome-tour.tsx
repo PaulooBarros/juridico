@@ -79,9 +79,11 @@ export function WelcomeTour({ nomeEscritorio, role, onClose }: WelcomeTourProps)
     return (
       <Overlay onClose={onClose}>
         <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-bold text-2xl mx-auto mb-5">
-            L
-          </div>
+          <img
+            src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png"
+            alt="Leea"
+            className="w-14 h-14 mx-auto mb-5"
+          />
           <h2 className="text-xl font-bold mb-1">Bem-vindo à Leea!</h2>
           <p className="text-sm text-muted-foreground mb-1">
             Você entrou em <strong className="text-foreground">{nomeEscritorio}</strong>

@@ -11,6 +11,10 @@ import {
   CircleUser, LogOut, ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LeeaLogo } from '@/components/ui/leea-logo'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getInitials } from '@/lib/utils'
+import { Tooltip } from '@/components/ui/tooltip'
 
 const NAV: Array<
   | { section: string }
@@ -40,9 +44,6 @@ interface SidebarProps {
   onMobileClose: () => void
 }
 
-function getInitials(name: string) {
-  return name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()
-}
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
@@ -56,7 +57,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   // Re-busca sessão e escritório a cada navegação para refletir atualizações
   // de avatar/logo feitas em outras páginas (ex: /perfil, /escritorio)
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
+    authClient.getSession({ fetchOptions: { cache: 'no-store' } }).then(({ data }) => {
       const user = data?.user as any
       setUserName(user?.nome_profissional || user?.name || user?.email || '')
       setUserAvatar(user?.image ?? null)
@@ -126,15 +127,15 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           )}
         >
           {isCollapsed ? (
-            <div className="hidden lg:flex w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground items-center justify-center font-serif italic font-semibold text-[13px]">
-              L
-            </div>
+            <img
+              src="/LeeaDesign/leea-perfil-instagram%20alta%20resolucao.png"
+              alt="Leea"
+              className="hidden lg:block w-[26px] h-[26px]"
+            />
           ) : (
-            <div className="flex items-center gap-2.5 px-4 py-4">
-              <div className="w-[22px] h-[22px] rounded-[3px] bg-primary text-primary-foreground flex items-center justify-center font-serif italic font-semibold text-[13px] shrink-0">
-                L
-              </div>
-              <span className="font-serif font-medium text-[16px] tracking-[-0.01em]">Leea</span>
+            <div className="px-4 py-4">
+              <LeeaLogo variant="light" height={22} className="dark:hidden" />
+              <LeeaLogo variant="dark"  height={22} className="hidden dark:block" />
             </div>
           )}
         </Link>
@@ -167,11 +168,10 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             }
             const active = isActive(item.href)
             const showLabel = !isCollapsed || mobileOpen
-            return (
+            const linkEl = (
               <div key={item.href} className={cn('px-2', !showLabel && 'px-1.5')}>
                 <Link
                   href={item.href}
-                  title={!showLabel ? item.label : undefined}
                   className={cn(
                     'flex items-center gap-[9px] px-2 py-1.5 rounded-[5px] text-[13px] transition-colors',
                     !showLabel && 'justify-center px-0 py-2',
@@ -185,6 +185,11 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                 </Link>
               </div>
             )
+            return !showLabel ? (
+              <Tooltip key={item.href} content={item.label} side="right" delayDuration={200}>
+                {linkEl}
+              </Tooltip>
+            ) : linkEl
           })}
         </nav>
 
@@ -200,12 +205,12 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
               (!isCollapsed || mobileOpen) ? '' : 'lg:justify-center lg:px-0'
             )}
           >
-            <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center font-semibold text-[10px] shrink-0 overflow-hidden">
-              {userAvatar
-                ? <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
-                : (userName ? getInitials(userName) : '?')
-              }
-            </div>
+            <Avatar className="w-6 h-6 shrink-0">
+              {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
+              <AvatarFallback className="text-[9px] font-semibold bg-foreground text-background">
+                {userName ? getInitials(userName) : '?'}
+              </AvatarFallback>
+            </Avatar>
             {(!isCollapsed || mobileOpen) && (
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] font-medium truncate text-foreground">{userName || '…'}</div>
