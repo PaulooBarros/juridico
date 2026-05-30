@@ -12,6 +12,7 @@ import { PrazosTab } from './prazos-tab'
 import { DocumentosTab } from './documentos-tab'
 import { TarefasTab } from './tarefas-tab'
 import { FinanceiroTab } from './financeiro-tab'
+import { MovimentacoesTab } from './movimentacoes-tab'
 
 export default async function CasoDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerAuthClient()
@@ -65,6 +66,9 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
           <TabsTrigger value="prazos">Prazos</TabsTrigger>
           <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="movimentacoes" disabled={!caso.numero}>
+            Movimentações
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview */}
@@ -209,6 +213,13 @@ export default async function CasoDetailPage({ params }: { params: { id: string 
         <TabsContent value="documentos">
           <div className="mt-4">
             <DocumentosTab casoId={params.id} clienteId={clienteId} />
+          </div>
+        </TabsContent>
+
+        {/* Movimentações DataJud */}
+        <TabsContent value="movimentacoes">
+          <div className="mt-4">
+            <MovimentacoesTab casoId={params.id} numeroProp={caso.numero ?? null} />
           </div>
         </TabsContent>
       </Tabs>

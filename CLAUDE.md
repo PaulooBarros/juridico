@@ -217,7 +217,10 @@ Todos os itens da v2 foram implementados, exceto integração com tribunal:
 | Autocomplete CNPJ/CPF | ✅ BrasilAPI |
 | CEP automático | ✅ BrasilAPI |
 | Tipo de processo | ✅ Físico/eletrônico no caso |
-| **Integração com tribunal** | ❌ Próxima prioridade — DataJud (CNJ) |
+| **Integração com tribunal** | ✅ DataJud (CNJ) — aba Movimentações + auto-fill nos formulários |
+| **Perfil do usuário** | ❌ Melhorias: preferências, leitura de notificações no banco (hoje localStorage) |
+| **Notificações por email** | ❌ Prazos críticos enviados por email via Resend (já integrado) |
+| **Calculadora de prazos** | ❌ Ver nota técnica abaixo |
 
 ### Modelos de documentos — arquitetura implementada
 
