@@ -33,6 +33,126 @@ SaaS B2B para escritórios de advocacia brasileiros. Substitui planilhas e Whats
 
 **Multi-tenancy:** Cada escritório é um tenant isolado via `escritorio_id`. Relação usuário → escritório via `membros (user_id, escritorio_id, role)`.
 
+---
+
+## Hierarquia e permissões
+
+### Níveis
+
+```
+SUPERADMIN  (plataforma)
+    └── OWNER       (titular do escritório)
+            └── ADMIN       (sócio / administrador)
+                    └── LAWYER      (advogado)
+                            └── ASSISTANT   (assistente)
+```
+
+### Superadmin (plataforma)
+
+Campo `is_superadmin: boolean` na tabela `user` do Better Auth.
+Rota dedicada `/admin` — protegida por middleware que verifica `is_superadmin`.
+
+| Pode | Não pode |
+|------|----------|
+| Ver todos os escritórios e métricas | Acessar dados de clientes/casos diretamente |
+| Ativar / desativar escritórios | Ser membro de um escritório com role especial |
+| Ver contagem de membros, casos, uso de storage por escritório | — |
+| Impersonar escritório para suporte (leitura) | — |
+
+**Identificação:** `user.is_superadmin = true` no banco. Primeiro superadmin criado via migration manual. Middleware verifica antes de renderizar `/admin/*`.
+
+### Owner (titular)
+
+Único por escritório. Criado automaticamente ao criar o escritório via `criarEscritorioCompleto`.
+
+| Pode | Não pode |
+|------|----------|
+| Convidar qualquer role (admin, lawyer, assistant) | Ser removido por qualquer membro |
+| Remover qualquer membro (inclusive admins) | Ter seu role alterado por outros |
+| Alterar role de qualquer membro | — |
+| Ver todo o financeiro, casos, clientes, documentos | — |
+| Gerenciar billing (quando disponível) | — |
+| Revogar convites de qualquer role | — |
+| Excluir escritório | — |
+
+**Transferência de ownership:** pendente (v3). Por enquanto, owner não pode ser removido por ninguém.
+
+### Admin (sócio / administrador)
+
+| Pode | Não pode |
+|------|----------|
+| Convidar: `lawyer`, `assistant` | Convidar `admin` — apenas owner pode |
+| Remover: `lawyer`, `assistant` | Remover `owner` ou outro `admin` |
+| Ver todos os casos, clientes, financeiro | Gerenciar billing |
+| Revogar convites de `lawyer`/`assistant` | Revogar convites de `admin` |
+| Editar dados do escritório | Excluir escritório |
+
+### Lawyer (advogado)
+
+| Pode | Não pode |
+|------|----------|
+| Criar e gerenciar casos | Convidar ou remover membros |
+| Criar e editar clientes | Ver financeiro de outros advogados (configurável) |
+| Ver e fazer upload de documentos | Acessar gestão de equipe |
+| Criar prazos, tarefas, modelos | Alterar configurações do escritório |
+| Ver financeiro dos seus casos | — |
+
+### Assistant (assistente)
+
+| Pode | Não pode |
+|------|----------|
+| Ver casos e clientes (leitura) | Criar casos ou clientes |
+| Criar tarefas e prazos em casos existentes | Ver financeiro (qualquer) |
+| Upload e visualização de documentos | Convidar ou remover membros |
+| Usar modelos | Alterar dados do escritório |
+
+---
+
+### Estado atual vs. necessário
+
+| Regra | Implementado | Pendente |
+|-------|-------------|---------|
+| Owner não pode ser removido | ✅ RLS: `role <> 'owner'` no DELETE | — |
+| Admin não pode convidar admin | ❌ | Filtrar roles no form de convite por `meuRole` |
+| Admin não pode remover admin | ❌ | Checar role do alvo antes de permitir remoção |
+| Assistant não vê financeiro | ❌ | RLS na tabela `transacoes` por role |
+| Superadmin de plataforma | ❌ | Campo `is_superadmin`, middleware, rota `/admin` |
+| Transferência de ownership | ❌ | v3 |
+
+### O que implementar para o beta
+
+**Antes do lançamento (UI, sem migration):**
+1. **Filtrar roles no convite por quem convida** — admin só vê `lawyer`/`assistant` no dropdown; `equipe/page.tsx`, ~5 linhas
+2. **Bloquear remoção de admin por admin na UI** — ocultar botão de remover quando alvo é `admin` e `meuRole !== 'owner'`; mesmo arquivo
+3. **Ocultar financeiro para assistant na UI** — esconder links/abas de Financeiro na sidebar e nos casos quando `meuRole === 'assistant'`; sem migration, só UI
+
+**Pós-beta (requer migration):**
+4. **Superadmin básico** — campo `is_superadmin`, middleware, rota `/admin` com lista de escritórios
+5. **RLS financeiro por role** — policy em `transacoes` impedindo assistant de ler mesmo via API
+
+### Migration necessária
+
+```sql
+-- Adicionar superadmin
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "is_superadmin" boolean NOT NULL DEFAULT false;
+
+-- Definir o primeiro superadmin (rodar manualmente)
+UPDATE "user" SET "is_superadmin" = true WHERE email = 'paulogustavobarros90@gmail.com';
+```
+
+```sql
+-- RLS: assistant não vê transações financeiras
+CREATE POLICY "transacoes_role_assistant" ON transacoes
+  FOR SELECT USING (
+    escritorio_id IN (SELECT get_user_escritorio_ids())
+    AND (
+      SELECT role FROM membros
+      WHERE user_id = app_user_id()
+        AND escritorio_id = transacoes.escritorio_id
+    ) <> 'assistant'
+  );
+```
+
 **Clients Supabase:**
 - Browser: `createAuthClient()` — injeta `x-user-id`
 - Servidor: `createClient(userId)` ou `createServerAuthClient()`
@@ -60,7 +180,7 @@ SaaS B2B para escritórios de advocacia brasileiros. Substitui planilhas e Whats
 | Configurações | ✅ Senha, Google Calendar |
 | Onboarding | ✅ Tour 6 steps via `?welcome=true` |
 | Notificações | ⚠️ Geradas dos prazos, mas persistência em localStorage — precisa migrar para banco |
-| Toast / feedback | ❌ Não implementado — sem confirmação visual de ações |
+| Toast / feedback | ✅ Sonner — cobre todas as ações em auth, app e upload |
 | Calculadora de prazos | ❌ Pendente — ver nota técnica abaixo |
 | Planos / billing | ⏸ UI comentada, aguarda CNPJ + Abacate Pay |
 

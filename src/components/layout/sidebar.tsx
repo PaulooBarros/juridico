@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { LeeaLogo } from '@/components/ui/leea-logo'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
+import { Tooltip } from '@/components/ui/tooltip'
 
 const NAV: Array<
   | { section: string }
@@ -167,11 +168,10 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             }
             const active = isActive(item.href)
             const showLabel = !isCollapsed || mobileOpen
-            return (
+            const linkEl = (
               <div key={item.href} className={cn('px-2', !showLabel && 'px-1.5')}>
                 <Link
                   href={item.href}
-                  title={!showLabel ? item.label : undefined}
                   className={cn(
                     'flex items-center gap-[9px] px-2 py-1.5 rounded-[5px] text-[13px] transition-colors',
                     !showLabel && 'justify-center px-0 py-2',
@@ -185,6 +185,11 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                 </Link>
               </div>
             )
+            return !showLabel ? (
+              <Tooltip key={item.href} content={item.label} side="right" delayDuration={200}>
+                {linkEl}
+              </Tooltip>
+            ) : linkEl
           })}
         </nav>
 
