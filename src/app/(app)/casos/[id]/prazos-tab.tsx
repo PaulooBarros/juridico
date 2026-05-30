@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { CalendarDays, Plus, Pencil, Trash2, CalendarCheck, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
@@ -50,13 +51,12 @@ function PrazoModal({ casoId, prazo, onClose, onSaved }: ModalProps) {
     status:     prazo?.status     ?? 'pending',
   })
   const [saving, setSaving] = useState(false)
-  const [erro,   setErro]   = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.titulo.trim()) { setErro('Título é obrigatório.'); return }
-    if (!form.data_prazo)    { setErro('Data é obrigatória.'); return }
-    setErro(''); setSaving(true)
+    if (!form.titulo.trim()) { toast.error('Título é obrigatório.'); return }
+    if (!form.data_prazo)    { toast.error('Data é obrigatória.'); return }
+    setSaving(true)
     try {
       let saved: Prazo
       if (prazo) {
@@ -65,6 +65,7 @@ function PrazoModal({ casoId, prazo, onClose, onSaved }: ModalProps) {
       } else {
         saved = await criarPrazo(form)
       }
+      toast.success('Prazo salvo')
       onSaved(saved)
       // Sync com Google Calendar em background (best-effort)
       fetch('/api/google/sync-prazo', {
@@ -73,7 +74,7 @@ function PrazoModal({ casoId, prazo, onClose, onSaved }: ModalProps) {
         body:    JSON.stringify({ prazoId: saved.id }),
       }).catch(() => {})
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
       setSaving(false)
     }
   }
@@ -128,8 +129,6 @@ function PrazoModal({ casoId, prazo, onClose, onSaved }: ModalProps) {
             <Textarea value={form.descricao ?? ''} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))}
               rows={2} className="text-[13px] resize-none" placeholder="Detalhes adicionais…" />
           </div>
-
-          {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose}

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Camera, Scale, Users, Briefcase, UserCheck, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,11 +40,8 @@ export default function EscritorioPage() {
   const [loading,    setLoading]    = useState(true)
   const [logoPreview,      setLogoPreview]      = useState<string | null>(null)
   const [uploadingLogo,    setUploadingLogo]    = useState(false)
-  const [logoErro,         setLogoErro]         = useState('')
   const [form,       setForm]       = useState<Form>({ nome: '', cnpj: '', oab_sociedade: '', especialidade: '', cidade_uf: '', slogan: '', descricao: '' })
   const [saving,     setSaving]     = useState(false)
-  const [sucesso,    setSucesso]    = useState(false)
-  const [erro,       setErro]       = useState('')
 
   useEffect(() => {
     async function carregar() {
@@ -81,10 +79,9 @@ export default function EscritorioPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setLogoErro('')
-    if (file.size > 2 * 1024 * 1024) { setLogoErro('Máximo 2 MB'); return }
+    if (file.size > 2 * 1024 * 1024) { toast.error('Máximo 2 MB'); return }
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
-      setLogoErro('Apenas JPG, PNG ou WebP'); return
+      toast.error('Apenas JPG, PNG ou WebP'); return
     }
 
     // Preview imediato
@@ -99,11 +96,11 @@ export default function EscritorioPage() {
       fd.append('file', file)
       const res  = await fetch('/api/upload/logo', { method: 'POST', body: fd })
       const data = await res.json()
-      if (!res.ok) { setLogoErro(data.error ?? 'Erro no upload'); return }
+      if (!res.ok) { toast.error(data.error ?? 'Erro no upload'); return }
       setLogoPreview(data.url)
       setEscritorio(prev => prev ? { ...prev, logo_url: data.url } : prev)
     } catch {
-      setLogoErro('Erro de conexão')
+      toast.error('Erro de conexão')
     } finally {
       setUploadingLogo(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -112,16 +109,15 @@ export default function EscritorioPage() {
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.nome.trim()) { setErro('Nome é obrigatório.'); return }
+    if (!form.nome.trim()) { toast.error('Nome é obrigatório.'); return }
     if (!escritorio) return
-    setErro(''); setSaving(true)
+    setSaving(true)
     try {
       await atualizarEscritorio(escritorio.id, form)
       setEscritorio(prev => prev ? { ...prev, ...form } : prev)
-      setSucesso(true)
-      setTimeout(() => setSucesso(false), 3000)
+      toast.success('Dados do escritório atualizados')
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
     } finally {
       setSaving(false)
     }
@@ -169,7 +165,6 @@ export default function EscritorioPage() {
                   <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleLogoChange} />
                 </>
               )}
-              {logoErro && <p className="text-[11px] text-destructive mt-1 absolute -bottom-5 left-0 whitespace-nowrap">{logoErro}</p>}
             </div>
 
             <div className="flex-1">
@@ -241,9 +236,6 @@ export default function EscritorioPage() {
                   <Label className="text-[12px] text-muted-foreground">Descrição</Label>
                   <Textarea value={form.descricao ?? ''} onChange={e => set({ descricao: e.target.value })} rows={3} className="text-[13px] resize-none" placeholder="Sobre o escritório…" />
                 </div>
-
-                {erro    && <p className="text-[12px] text-destructive">{erro}</p>}
-                {sucesso && <p className="text-[12px] text-emerald-600">Dados salvos com sucesso.</p>}
 
                 <button
                   type="submit"

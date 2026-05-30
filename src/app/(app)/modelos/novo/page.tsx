@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -33,7 +34,6 @@ const AREAS = [
 export default function NovoModeloPage() {
   const router = useRouter()
   const [saving,    setSaving]    = useState(false)
-  const [erro,      setErro]      = useState('')
   const [nome,      setNome]      = useState('')
   const [categoria, setCategoria] = useState<ModeloCategoria>('peticoes')
   const [area,      setArea]      = useState('')
@@ -42,8 +42,8 @@ export default function NovoModeloPage() {
   const [conteudo,  setConteudo]  = useState<any>({})
 
   async function salvar() {
-    if (!nome.trim()) { setErro('Nome é obrigatório.'); return }
-    setErro(''); setSaving(true)
+    if (!nome.trim()) { toast.error('Nome é obrigatório.'); return }
+    setSaving(true)
     try {
       const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
       const novo = await criarModelo({
@@ -54,9 +54,10 @@ export default function NovoModeloPage() {
         conteudo,
         tags,
       })
+      toast.success('Modelo salvo')
       router.push(`/modelos/${novo.id}`)
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao criar modelo.')
+      toast.error(e.message ?? 'Erro ao criar modelo.')
       setSaving(false)
     }
   }
@@ -102,8 +103,6 @@ export default function NovoModeloPage() {
           </button>
         </div>
       </div>
-
-      {erro && <p className="text-xs text-destructive">{erro}</p>}
 
       {/* Corpo */}
       <div className="flex gap-5 items-start flex-col lg:flex-row">

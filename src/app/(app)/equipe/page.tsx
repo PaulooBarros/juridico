@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Mail, Calendar, UserMinus, UserPlus, X, Copy, Check, Link2, Loader2, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
@@ -274,20 +275,20 @@ function ModalConvite({ onClose, onConvidado }: { onClose: () => void; onConvida
   const [email,   setEmail]   = useState('')
   const [role,    setRole]    = useState<ConviteRole>('lawyer')
   const [loading, setLoading] = useState(false)
-  const [erro,    setErro]    = useState('')
   const [linkGerado, setLinkGerado] = useState('')
   const [copied,  setCopied]  = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) { setErro('E-mail é obrigatório.'); return }
-    setErro(''); setLoading(true)
+    if (!email.trim()) { toast.error('E-mail é obrigatório.'); return }
+    setLoading(true)
     try {
       const convite = await criarConvite(email.trim(), role)
       const link = `${window.location.origin}/convite?token=${convite.token}`
       setLinkGerado(link)
+      toast.success('Convite enviado')
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao criar convite.')
+      toast.error(e.message ?? 'Erro ao criar convite.')
       setLoading(false)
     }
   }
@@ -356,8 +357,6 @@ function ModalConvite({ onClose, onConvidado }: { onClose: () => void; onConvida
               </select>
             </div>
 
-            {erro && <p className="text-[12px] text-destructive">{erro}</p>}
-
             <div className="flex justify-end gap-2 pt-1">
               <button type="button" onClick={onClose}
                 className="px-4 h-9 border border-border rounded-[5px] text-[13px] text-muted-foreground hover:bg-accent transition-colors">
@@ -383,7 +382,6 @@ function ConfirmarRemocao({ membro, onCancelar, onConfirmar }: {
   onConfirmar: () => void
 }) {
   const [loading, setLoading] = useState(false)
-  const [erro,    setErro]    = useState('')
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -393,7 +391,6 @@ function ConfirmarRemocao({ membro, onCancelar, onConfirmar }: {
         <p className="text-[13px] text-muted-foreground mb-6">
           Tem certeza que deseja remover <strong className="text-foreground">{membro.nome}</strong> do escritório? O acesso será revogado imediatamente.
         </p>
-        {erro && <p className="text-[12px] text-destructive mb-4">{erro}</p>}
         <div className="flex justify-end gap-2">
           <button onClick={onCancelar}
             className="px-4 h-9 border border-border rounded-[5px] text-[13px] text-muted-foreground hover:bg-accent transition-colors">
@@ -403,7 +400,7 @@ function ConfirmarRemocao({ membro, onCancelar, onConfirmar }: {
             onClick={async () => {
               setLoading(true)
               try { await onConfirmar() }
-              catch (e: any) { setErro(e.message ?? 'Erro ao remover.'); setLoading(false) }
+              catch (e: any) { toast.error(e.message ?? 'Erro ao remover.'); setLoading(false) }
             }}
             disabled={loading}
             className="px-4 h-9 bg-destructive text-destructive-foreground rounded-[5px] text-[13px] font-medium hover:bg-destructive/90 transition-colors disabled:opacity-60"

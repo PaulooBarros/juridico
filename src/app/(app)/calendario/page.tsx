@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, CalendarDays, Plus, X, Loader2, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import {
   listarTodosPrazos, criarPrazo,
@@ -57,13 +58,12 @@ function NovoPrazoModal({ dataInicial, casos, onClose, onSalvo }: NovoPrazoModal
   const [casoId,   setCasoId]   = useState('')
   const [descricao,setDescricao]= useState('')
   const [saving,   setSaving]   = useState(false)
-  const [erro,     setErro]     = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!titulo.trim()) { setErro('Título é obrigatório.'); return }
-    if (!data)          { setErro('Informe a data.'); return }
-    setSaving(true); setErro('')
+    if (!titulo.trim()) { toast.error('Título é obrigatório.'); return }
+    if (!data)          { toast.error('Informe a data.'); return }
+    setSaving(true)
     try {
       const prazo = await criarPrazo({
         titulo:     titulo.trim(),
@@ -74,9 +74,10 @@ function NovoPrazoModal({ dataInicial, casos, onClose, onSalvo }: NovoPrazoModal
         caso_id:    casoId || undefined,
       })
       const casoTitulo = casos.find(c => c.id === casoId)?.titulo ?? null
+      toast.success('Prazo salvo')
       onSalvo({ ...prazo, caso_titulo: casoTitulo })
     } catch {
-      setErro('Erro ao salvar. Tente novamente.')
+      toast.error('Erro ao salvar. Tente novamente.')
       setSaving(false)
     }
   }
@@ -164,8 +165,6 @@ function NovoPrazoModal({ dataInicial, casos, onClose, onSalvo }: NovoPrazoModal
               className="w-full px-3 py-2 rounded-[6px] border border-border bg-background text-[13px] outline-none focus:ring-2 focus:ring-primary/30 transition resize-none"
             />
           </div>
-
-          {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
           <div className="flex items-center justify-end gap-2 pt-1">
             <button

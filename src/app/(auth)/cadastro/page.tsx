@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 const BENEFITS = [
   'Plano Free para sempre, sem cartão',
@@ -49,7 +50,7 @@ function CadastroContent() {
     })
 
     if (error) {
-      setErro(
+      toast.error(
         error.message?.includes('already') || error.message?.includes('email')
           ? 'Este e-mail já está cadastrado.'
           : 'Não foi possível criar a conta. Tente novamente.'

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
 import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 const AREAS = [
   'Cível', 'Trabalhista', 'Criminal', 'Tributário', 'Família e Sucessões',
@@ -58,7 +59,7 @@ export default function CompletarPerfilPage() {
     } as any)
 
     if (error) {
-      setErro('Não foi possível salvar. Tente novamente.')
+      toast.error('Não foi possível salvar. Tente novamente.')
       setSaving(false)
       return
     }

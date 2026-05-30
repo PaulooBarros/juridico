@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { DollarSign, Plus, Pencil, Trash2, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -51,7 +52,6 @@ function TransacaoModal({ casoId, valorCausa, transacao, onClose, onSaved }: {
   const [pct,      setPct]      = useState('')
   const [clientes, setClientes] = useState<{ id: string; name: string }[]>([])
   const [saving,   setSaving]   = useState(false)
-  const [erro,     setErro]     = useState('')
 
   useEffect(() => {
     listarClientes().then(cls => setClientes(cls.map(c => ({ id: c.id, name: c.name }))))
@@ -67,9 +67,9 @@ function TransacaoModal({ casoId, valorCausa, transacao, onClose, onSaved }: {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.descricao.trim()) { setErro('Descrição é obrigatória.'); return }
-    if (!form.valor || form.valor <= 0) { setErro('Informe um valor válido.'); return }
-    setErro(''); setSaving(true)
+    if (!form.descricao.trim()) { toast.error('Descrição é obrigatória.'); return }
+    if (!form.valor || form.valor <= 0) { toast.error('Informe um valor válido.'); return }
+    setSaving(true)
     try {
       const input: TransacaoInput = {
         ...form,
@@ -88,9 +88,10 @@ function TransacaoModal({ casoId, valorCausa, transacao, onClose, onSaved }: {
       } else {
         saved = await criarTransacao(input)
       }
+      toast.success('Lançamento salvo')
       onSaved(saved)
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
       setSaving(false)
     }
   }
@@ -206,8 +207,6 @@ function TransacaoModal({ casoId, valorCausa, transacao, onClose, onSaved }: {
             <Textarea value={form.notas ?? ''} onChange={e => set({ notas: e.target.value })}
               rows={2} className="text-[13px] resize-none" placeholder="Detalhes adicionais…" />
           </div>
-
-          {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={onClose}

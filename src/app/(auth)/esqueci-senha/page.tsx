@@ -5,17 +5,16 @@ import { ArrowLeft, MailCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 type Step = 'email' | 'enviado'
 
 export default function EsqueciSenhaPage() {
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleEnviar(e: React.FormEvent) {
     e.preventDefault()
-    setErro('')
     setLoading(true)
 
     const redirectTo = `${window.location.origin}/redefinir-senha`
@@ -26,7 +25,7 @@ export default function EsqueciSenhaPage() {
     })
 
     if (!res.ok) {
-      setErro('Não foi possível enviar o e-mail. Verifique o endereço e tente novamente.')
+      toast.error('Não foi possível enviar o e-mail. Verifique o endereço e tente novamente.')
       setLoading(false)
       return
     }
@@ -89,8 +88,6 @@ export default function EsqueciSenhaPage() {
                     className="h-9 text-[13px] bg-card border-border rounded-[5px]"
                   />
                 </div>
-
-                {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
                 <button
                   type="submit"

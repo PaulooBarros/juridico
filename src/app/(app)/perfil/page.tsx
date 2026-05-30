@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { Camera, User, Award, Loader2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,9 +32,6 @@ export default function PerfilPage() {
   const [loading,        setLoading]        = useState(true)
   const [saving,         setSaving]         = useState(false)
   const [uploadingAvatar,setUploadingAvatar] = useState(false)
-  const [avatarErro,     setAvatarErro]     = useState('')
-  const [sucesso,        setSucesso]        = useState(false)
-  const [erro,           setErro]           = useState('')
 
   useEffect(() => {
     authClient.getSession().then(({ data }) => {
@@ -67,10 +65,9 @@ export default function PerfilPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setAvatarErro('')
-    if (file.size > 2 * 1024 * 1024) { setAvatarErro('Máximo 2 MB'); return }
+    if (file.size > 2 * 1024 * 1024) { toast.error('Máximo 2 MB'); return }
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
-      setAvatarErro('Apenas JPG, PNG ou WebP'); return
+      toast.error('Apenas JPG, PNG ou WebP'); return
     }
 
     // Preview imediato
@@ -85,10 +82,11 @@ export default function PerfilPage() {
       fd.append('file', file)
       const res  = await fetch('/api/upload/avatar', { method: 'POST', body: fd })
       const data = await res.json()
-      if (!res.ok) { setAvatarErro(data.error ?? 'Erro no upload'); return }
+      if (!res.ok) { toast.error(data.error ?? 'Erro no upload'); return }
       setAvatar(data.url)
+      toast.success('Foto atualizada')
     } catch {
-      setAvatarErro('Erro de conexão')
+      toast.error('Erro de conexão')
     } finally {
       setUploadingAvatar(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -97,8 +95,8 @@ export default function PerfilPage() {
 
   async function handleSalvar(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.nome_profissional.trim()) { setErro('Nome é obrigatório.'); return }
-    setErro(''); setSaving(true)
+    if (!form.nome_profissional.trim()) { toast.error('Nome é obrigatório.'); return }
+    setSaving(true)
     try {
       const { error } = await authClient.updateUser({
         nome_profissional: form.nome_profissional,
@@ -107,10 +105,9 @@ export default function PerfilPage() {
         areas_atuacao:     JSON.stringify(form.areas_atuacao),
       } as any)
       if (error) throw error
-      setSucesso(true)
-      setTimeout(() => setSucesso(false), 3000)
+      toast.success('Perfil atualizado')
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
     } finally {
       setSaving(false)
     }
@@ -160,7 +157,6 @@ export default function PerfilPage() {
               >
                 {uploadingAvatar ? 'Enviando…' : 'Alterar foto'}
               </button>
-              {avatarErro && <p className="text-[11px] text-destructive mt-1">{avatarErro}</p>}
             </div>
           </div>
         </CardContent>
@@ -208,9 +204,6 @@ export default function PerfilPage() {
               />
             </div>
 
-            {erro    && <p className="text-[12px] text-destructive">{erro}</p>}
-            {sucesso && <p className="text-[12px] text-emerald-600">Perfil atualizado com sucesso.</p>}
-
             <button
               type="submit"
               disabled={saving}
@@ -253,10 +246,12 @@ export default function PerfilPage() {
                 type="button"
                 onClick={async () => {
                   setSaving(true)
-                  await authClient.updateUser({ areas_atuacao: JSON.stringify(form.areas_atuacao) } as any)
-                  setSaving(false)
-                  setSucesso(true)
-                  setTimeout(() => setSucesso(false), 2000)
+                  try {
+                    await authClient.updateUser({ areas_atuacao: JSON.stringify(form.areas_atuacao) } as any)
+                    toast.success('Perfil atualizado')
+                  } finally {
+                    setSaving(false)
+                  }
                 }}
                 disabled={saving}
                 className="px-3 h-7 bg-primary text-primary-foreground rounded-[5px] text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"

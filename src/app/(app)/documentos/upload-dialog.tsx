@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { Upload, X, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Upload, X, FileText, Loader2, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 const DOC_TIPOS = [
   { value: 'peticao',     label: 'Petição' },
@@ -45,7 +46,6 @@ export function UploadDialog({
   const [clientes,  setClientes]  = useState<Client[]>([])
   const [dragging,  setDragging]  = useState(false)
   const [status,    setStatus]    = useState<'idle'|'uploading'|'success'|'error'>('idle')
-  const [erro,      setErro]      = useState('')
 
   // Carrega casos e clientes disponíveis
   useEffect(() => {
@@ -67,17 +67,15 @@ export function UploadDialog({
       setCasoSel(casoId ?? '')
       setClienteSel(clienteId ?? '')
       setStatus('idle')
-      setErro('')
     }
   }, [open, casoId, clienteId])
 
   function handleFile(f: File) {
-    setErro('')
-    if (f.type !== 'application/pdf') { setErro('Apenas arquivos PDF são permitidos.'); return }
-    if (f.size > 10 * 1024 * 1024)    { setErro('Arquivo muito grande. Máximo: 10 MB'); return }
+    if (f.type !== 'application/pdf') { toast.error('Apenas arquivos PDF são permitidos.'); return }
+    if (f.size > 10 * 1024 * 1024)    { toast.error('Arquivo muito grande. Máximo: 10 MB'); return }
     if (quotaUsada + f.size > quotaTotal) {
       const disp = ((quotaTotal - quotaUsada) / (1024 * 1024)).toFixed(1)
-      setErro(`Cota insuficiente. Disponível: ${disp} MB`)
+      toast.error(`Cota insuficiente. Disponível: ${disp} MB`)
       return
     }
     setFile(f)
@@ -93,11 +91,10 @@ export function UploadDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!file)       { setErro('Selecione um arquivo PDF.'); return }
-    if (!nome.trim()){ setErro('Informe um nome para o documento.'); return }
+    if (!file)       { toast.error('Selecione um arquivo PDF.'); return }
+    if (!nome.trim()){ toast.error('Informe um nome para o documento.'); return }
 
     setStatus('uploading')
-    setErro('')
 
     const fd = new FormData()
     fd.append('file', file)
@@ -109,11 +106,12 @@ export function UploadDialog({
     try {
       const res  = await fetch('/api/upload/documento', { method: 'POST', body: fd })
       const data = await res.json()
-      if (!res.ok) { setErro(data.error ?? 'Erro no upload'); setStatus('error'); return }
+      if (!res.ok) { toast.error(data.error ?? 'Erro no upload'); setStatus('error'); return }
       setStatus('success')
+      toast.success('Documento enviado')
       setTimeout(() => { onSuccess(data.documento); onClose() }, 800)
     } catch {
-      setErro('Erro de conexão')
+      toast.error('Erro de conexão')
       setStatus('error')
     }
   }
@@ -261,14 +259,6 @@ export function UploadDialog({
               />
             </div>
           </div>
-
-          {/* Erro */}
-          {erro && (
-            <div className="flex items-center gap-2 text-destructive text-[12px]">
-              <AlertCircle size={13} />
-              {erro}
-            </div>
-          )}
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 pt-1">

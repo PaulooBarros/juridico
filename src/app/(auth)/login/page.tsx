@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { getMeuEscritorioId } from '@/lib/supabase/escritorio'
 import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   return (
@@ -22,18 +23,16 @@ function LoginContent() {
   const nextParam = searchParams.get('next')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setErro('')
     setLoading(true)
 
     const { error } = await authClient.signIn.email({ email, password: senha })
 
     if (error) {
-      setErro('E-mail ou senha incorretos.')
+      toast.error('E-mail ou senha incorretos.')
       setLoading(false)
       return
     }
@@ -132,10 +131,6 @@ function LoginContent() {
                 className="h-9 text-[13px] bg-card border-border rounded-[5px]"
               />
             </div>
-
-            {erro && (
-              <p className="text-[12px] text-destructive">{erro}</p>
-            )}
 
             <button
               type="submit"

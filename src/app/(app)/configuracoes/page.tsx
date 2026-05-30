@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -27,8 +28,6 @@ export default function ConfiguracoesPage() {
   const [novaSenha,      setNovaSenha]      = useState('')
   const [confirmSenha,   setConfirmSenha]   = useState('')
   const [savingPass,     setSavingPass]     = useState(false)
-  const [erroPass,       setErroPass]       = useState('')
-  const [sucessoPass,    setSucessoPass]    = useState(false)
 
   // Plano
   const [escritorio,     setEscritorio]     = useState<Escritorio | null>(null)
@@ -118,19 +117,17 @@ export default function ConfiguracoesPage() {
 
   async function handleAlterarSenha(e: React.FormEvent) {
     e.preventDefault()
-    setErroPass(''); setSucessoPass(false)
-    if (!novaSenha) { setErroPass('Informe a nova senha.'); return }
-    if (novaSenha.length < 8) { setErroPass('A senha deve ter pelo menos 8 caracteres.'); return }
-    if (novaSenha !== confirmSenha) { setErroPass('As senhas não coincidem.'); return }
+    if (!novaSenha) { toast.error('Informe a nova senha.'); return }
+    if (novaSenha.length < 8) { toast.error('A senha deve ter pelo menos 8 caracteres.'); return }
+    if (novaSenha !== confirmSenha) { toast.error('As senhas não coincidem.'); return }
     setSavingPass(true)
     try {
       const { error } = await authClient.changePassword({ newPassword: novaSenha, currentPassword: senhaAtual })
       if (error) throw error
       setSenhaAtual(''); setNovaSenha(''); setConfirmSenha('')
-      setSucessoPass(true)
-      setTimeout(() => setSucessoPass(false), 3000)
+      toast.success('Configurações salvas')
     } catch (e: any) {
-      setErroPass(e.message ?? 'Erro ao alterar senha.')
+      toast.error(e.message ?? 'Erro ao alterar senha.')
     } finally {
       setSavingPass(false)
     }
@@ -227,9 +224,6 @@ export default function ConfiguracoesPage() {
                   <Input type="password" value={confirmSenha} onChange={e => setConfirmSenha(e.target.value)}
                     placeholder="••••••••" className="h-9 text-[13px]" />
                 </div>
-
-                {erroPass    && <p className="text-[12px] text-destructive">{erroPass}</p>}
-                {sucessoPass && <p className="text-[12px] text-emerald-600">Senha alterada com sucesso.</p>}
 
                 <button type="submit" disabled={savingPass}
                   className="px-4 h-9 bg-primary text-primary-foreground rounded-[5px] text-[13px] font-medium hover:bg-primary/90 transition-colors disabled:opacity-60">

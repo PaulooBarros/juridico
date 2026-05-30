@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Pencil, Trash2, Loader2, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -100,7 +101,6 @@ function CasoFormModal({
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [membros,  setMembros]  = useState<Membro[]>([])
   const [loading,  setLoading]  = useState(false)
-  const [erro,     setErro]     = useState('')
 
   const [datajudInfo, setDatajudInfo] = useState<DatajudAutofill | null>(null)
   const [buscandoDatajud, setBuscandoDatajud] = useState(false)
@@ -145,13 +145,14 @@ function CasoFormModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.titulo.trim()) { setErro('Título é obrigatório.'); return }
-    setErro(''); setLoading(true)
+    if (!form.titulo.trim()) { toast.error('Título é obrigatório.'); return }
+    setLoading(true)
     try {
       await atualizarCaso(caso.id, form)
+      toast.success('Caso atualizado')
       onSalvo()
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
       setLoading(false)
     }
   }
@@ -303,7 +304,6 @@ function CasoFormModal({
           </SheetBody>
 
           <SheetFooter>
-            {erro && <p className="text-[12px] text-destructive mr-auto">{erro}</p>}
             <button type="button" onClick={onClose}
               className="px-4 h-9 border border-border rounded-[5px] text-[13px] text-muted-foreground hover:bg-accent transition-colors">
               Cancelar

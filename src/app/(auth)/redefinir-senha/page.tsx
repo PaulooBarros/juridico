@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { LeeaLogo } from '@/components/ui/leea-logo'
+import { toast } from 'sonner'
 
 export default function RedefinirSenhaPage() {
   return (
@@ -24,7 +25,6 @@ function RedefinirSenhaContent() {
 
   const [senha, setSenha] = useState('')
   const [confirmar, setConfirmar] = useState('')
-  const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
   const [ok, setOk] = useState(false)
 
@@ -34,13 +34,12 @@ function RedefinirSenhaContent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!senhaOk || !match) return
-    setErro('')
     setLoading(true)
 
     const { error } = await authClient.resetPassword({ newPassword: senha, token })
 
     if (error) {
-      setErro('Não foi possível redefinir a senha. O link pode ter expirado.')
+      toast.error('Não foi possível redefinir a senha. O link pode ter expirado.')
       setLoading(false)
       return
     }
@@ -125,8 +124,6 @@ function RedefinirSenhaContent() {
                     <p className="text-[11px] text-destructive">As senhas não conferem.</p>
                   )}
                 </div>
-
-                {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
                 <button
                   type="submit"

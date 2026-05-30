@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Pencil, Trash2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -76,19 +77,19 @@ function ClienteFormModal({
     notes:    cliente.notes    ?? '',
   })
   const [loading, setLoading] = useState(false)
-  const [erro, setErro]       = useState('')
 
   const set = (patch: Partial<ClienteInput>) => setForm(prev => ({ ...prev, ...patch }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.name.trim()) { setErro('Nome é obrigatório.'); return }
-    setErro(''); setLoading(true)
+    if (!form.name.trim()) { toast.error('Nome é obrigatório.'); return }
+    setLoading(true)
     try {
       await atualizarCliente(cliente.id, form)
+      toast.success('Cliente atualizado')
       onSalvo()
     } catch (e: any) {
-      setErro(e.message ?? 'Erro ao salvar.')
+      toast.error(e.message ?? 'Erro ao salvar.')
       setLoading(false)
     }
   }
@@ -172,8 +173,6 @@ function ClienteFormModal({
             <Textarea value={form.notes ?? ''} onChange={e => set({ notes: e.target.value })}
               rows={2} className="text-[13px] resize-none" placeholder="Informações adicionais…" />
           </F>
-
-          {erro && <p className="text-[12px] text-destructive">{erro}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={onClose}
